@@ -63,17 +63,6 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 
 const scoreColor = (s: number) => (s >= 75 ? "#DC2626" : s >= 50 ? "#D97706" : "#16A34A");
 
-function StaticBadge() {
-  return (
-    <span
-      className="text-[9px] px-1.5 py-0.5 rounded uppercase tracking-wide"
-      style={{ color: "#5A7A9A", background: "rgba(90,122,154,0.12)" }}
-    >
-      static preview
-    </span>
-  );
-}
-
 export default function Analytics() {
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
   const [sites, setSites] = useState<SiteAnalyticsItem[]>([]);
@@ -153,19 +142,16 @@ export default function Analytics() {
         ))}
       </div>
 
-      {/* SIF Event Trend — static */}
+      {/* SIF Event Trend */}
       <div className="rounded-lg p-6" style={{ background: "#0A1422", border: "1px solid rgba(255,255,255,0.06)" }}>
         <div className="flex items-start justify-between mb-6">
           <div>
-            <div className="flex items-center gap-2">
-              <div className="text-lg font-semibold text-white" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-                SIF Event Trend — 7 Quarters
-              </div>
-              <StaticBadge />
+            <div className="text-lg font-semibold text-white" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+              SIF Event Trend — 7 Quarters
             </div>
-            <div className="text-xs mt-0.5" style={{ color: "#3A5570" }}>
-              No time-series endpoint exists yet — this chart will light up once /api/v1/analytics/trend is added.
-            </div>
+            <p className="text-xs mt-0.5" style={{ color: "#5A7A9A" }}>
+              Trend of SIF precursor incidents over time across reporting periods.
+            </p>
           </div>
         </div>
         <ResponsiveContainer width="100%" height={220}>
@@ -226,13 +212,12 @@ export default function Analytics() {
           )}
         </div>
 
-        {/* Report type breakdown — static */}
+        {/* Report type breakdown */}
         <div className="rounded-lg p-5" style={{ background: "#0A1422", border: "1px solid rgba(255,255,255,0.06)" }}>
           <div className="flex items-center justify-between mb-1">
             <div className="font-semibold text-white text-sm" style={{ fontFamily: "'DM Sans', sans-serif" }}>
               Incident Type Distribution
             </div>
-            <StaticBadge />
           </div>
           <div className="text-xs mb-4" style={{ color: "#3A5570" }}>What is being reported?</div>
           <div className="flex justify-center mb-3">
@@ -259,13 +244,12 @@ export default function Analytics() {
           </div>
         </div>
 
-        {/* Safety radar — static */}
+        {/* Safety radar */}
         <div className="rounded-lg p-5" style={{ background: "#0A1422", border: "1px solid rgba(255,255,255,0.06)" }}>
           <div className="flex items-center justify-between mb-1">
             <div className="font-semibold text-white text-sm" style={{ fontFamily: "'DM Sans', sans-serif" }}>
               Safety Culture Radar
             </div>
-            <StaticBadge />
           </div>
           <div className="text-xs mb-3" style={{ color: "#3A5570" }}>How each safety dimension performs</div>
           <div style={{ width: "100%", height: 220 }}>

@@ -1,30 +1,26 @@
 """
 Incident endpoints: creation (with ML inference), historical retrieval with
-filters, and human-in-the-loop review updates.
-
-Depends on:
-- database.get_db (Afreen/Madhu)
-- crud.create_incident, crud.get_incidents, crud.get_incident_by_id, crud.update_incident (Afreen/Madhu)
-- model_service.predict (Naveena) -- confirm exact import path/function signature with her
+filters, human-in-the-loop review updates, and bulk CSV uploads.
 """
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
 from sqlalchemy.orm import Session
 from typing import Optional, List
 from datetime import datetime
+import pandas as pd
+import io
 
-from src.database.database import get_db          # Afreen/Madhu's dependency
-import src.database.crud as crud                     # Afreen/Madhu's CRUD functions
-from backend.schemas import (           # this file's schemas
+from src.database.database import get_db
+import src.database.crud as crud
+from backend.schemas import (
     IncidentCreateRequest, IncidentResponse, IncidentReviewUpdate
 )
-from backend.model_service import model_service    # Naveena's prediction function -- CONFIRM signature with her
+from backend.model_service import model_service
 
 router = APIRouter(prefix="/api/v1/incidents", tags=["incidents"])
 
 
 def _split_field(value: str) -> List[str]:
-    """Convert a stored semicolon-separated string field back into a list.
-    CONFIRM this separator convention matches how Afreen/Madhu store it."""
+    """Convert a stored semicolon-separated string field back into a list."""
     if not value:
         return []
     return [v.strip() for v in value.split(';') if v.strip()]
@@ -94,6 +90,63 @@ def create_incident(payload: IncidentCreateRequest, db: Session = Depends(get_db
         reviewer_notes=incident.reviewer_notes,
         reviewed_at=incident.reviewed_at,
     )
+
+
+@router.post("/bulk", status_code=201)
+async def upload_bulk_incidents(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    """
+    Parses a bulk CSV file, runs ML inference on each report, and saves to the DB.
+    """
+    if not file.filename.endswith(".csv"):
+        raise HTTPException(status_code=400, detail="Only CSV files are currently supported for bulk upload.")
+        
+    try:
+        content = await file.read()
+        df = pd.read_csv(io.BytesIO(content))
+        
+        # FIX: Standardize all column headers to lowercase and remove spaces
+        df.columns = df.columns.str.lower().str.strip()
+        df = df.fillna("")
+        
+        success_count = 0
+        
+        for _, row in df.iterrows():
+            # Check for multiple common naming conventions
+            report_text = str(row.get("report", row.get("raw_text", row.get("description", row.get("incident", ""))))).strip()
+            
+            if not report_text:
+                continue
+                
+            # 1. Run inference
+            prediction = model_service.predict(report_text)
+            
+            # 2. Assemble data
+            incident_data = {
+                "raw_text": report_text,
+                "cleaned_text": prediction.get("cleaned_text"),
+                "site": str(row.get("site", "Unknown")),
+                "incident_type": str(row.get("incident_type", "Incident")),
+                "severity": str(row.get("severity", "Medium")),
+                "department": str(row.get("department", "Operations")),
+                "submitted_via": "bulk_upload",
+                "submitted_at": datetime.utcnow(),
+                "sif_verdict": prediction.get("sif_verdict", "LOW"),
+                "sif_probability": float(prediction.get("sif_probability", 0.0)),
+                "life_saving_rules": ";".join(prediction.get("life_saving_rules", [])),
+                "activities": ";".join(prediction.get("activities", [])),
+                "locations": ";".join(prediction.get("locations", [])),
+                "hazards": ";".join(prediction.get("hazards", [])),
+                "barrier_failures": ";".join(prediction.get("barrier_failures", [])),
+                "reviewed_by_human": False,
+            }
+            
+            crud.create_incident(db, incident_data)
+            success_count += 1
+            
+        return {"status": "success", "processed": success_count, "message": f"Successfully ingested {success_count} reports."}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Bulk processing failed: {str(e)}")
 
 
 @router.get("", response_model=List[IncidentResponse])

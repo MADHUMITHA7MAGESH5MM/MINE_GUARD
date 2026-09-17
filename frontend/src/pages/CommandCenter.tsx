@@ -32,7 +32,7 @@ const alerts = [
 ];
 
 const kpis = [
-  { label: "Total Incidents YTD", value: "1015", delta: "+12%", up: true },
+  { label: "Total Incidents YTD", value: "1001", delta: "+12%", up: true },
   { label: "High-SIF Cases", value: "248", delta: "+3 this week", up: true },
   { label: "Pending Reviews", value: "17", delta: "6 overdue", up: true },
   { label: "Fatality Prevention Score", value: "55.8", delta: "+2.1 pts", up: false, unit: "/100" },
