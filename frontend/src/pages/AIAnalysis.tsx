@@ -1,0 +1,514 @@
+import { useState } from "react";
+import {
+  submitIncident,
+  ApiError,
+  type IncidentResponse,
+  type PredictionResponse,
+} from "@/lib/api";
+import VoiceRecorder from "../components/VoiceRecorder";
+
+function verdictLabel(v: PredictionResponse["sif_verdict"]) {
+  if (v === "HIGH") return "HIGH SIF POTENTIAL";
+  if (v === "REVIEW") return "BORDERLINE — HUMAN REVIEW RECOMMENDED";
+  return "LOW SIF POTENTIAL";
+}
+
+function verdictColor(v: PredictionResponse["sif_verdict"]) {
+  if (v === "HIGH") return "#DC2626";
+  if (v === "REVIEW") return "#D97706";
+  return "#16A34A";
+}
+
+function buildSummary(r: PredictionResponse, barrierFailures: string[]) {
+  const parts: string[] = [];
+  if (r.sif_verdict === "HIGH") {
+    parts.push("This report contains language consistent with Serious Injury or Fatality (SIF) precursors.");
+  } else if (r.sif_verdict === "REVIEW") {
+    parts.push("The model is not confident enough to classify this automatically — a human reviewer should confirm the verdict.");
+  } else {
+    parts.push("The model did not find strong SIF-precursor signal in this report.");
+  }
+  if (r.life_saving_rules.length) {
+    parts.push(`Matched to ${r.life_saving_rules.length} IOGP Life-Saving Rule${r.life_saving_rules.length > 1 ? "s" : ""}: ${r.life_saving_rules.join(", ")}.`);
+  }
+
+  if (barrierFailures.length) {
+    parts.push(
+      ` ${barrierFailures.length} barrier failure${
+        barrierFailures.length > 1 ? "s" : ""
+      } detected.`
+    );
+  }
+  return parts.join(" ");
+}
+
+export default function AIAnalysis() {
+  const [report, setReport] = useState("");
+  const [selectedSite, setSelectedSite] = useState("");
+  const [incidentType, setIncidentType] = useState("");
+  const [severity, setSeverity] = useState("");
+  const [department, setDepartment] = useState("");
+  const [result, setResult] = useState<IncidentResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [reportId] = useState(
+    `INC-${new Date().getFullYear()}-${Math.floor(
+      1000 + Math.random() * 9000
+    )}`
+  );
+
+  const isFormInvalid = loading || !report.trim();
+
+  const analyze = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await submitIncident(report, selectedSite, incidentType, severity, department);
+      console.log("API RESPONSE:", res);
+      setResult(res);
+    } catch (e: unknown) {
+      setResult(null);
+      setError(e instanceof ApiError ? e.message : "Something went wrong analyzing this report.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const analyzed = result !== null;
+
+  const hasMetadata = [
+    result?.site,
+    result?.incident_type,
+    result?.severity,
+    result?.department,
+  ].some(
+    (v) =>
+      Boolean(v?.trim()) &&
+      v !== "Not specified" &&
+      v !== "Unknown" &&
+      v !== "N/A"
+  );
+
+  const workflowStatus =
+    result?.sif_verdict === "HIGH"
+      ? "Escalated for Immediate Review"
+      : result?.sif_verdict === "REVIEW"
+      ? "Pending Human Review"
+      : "Closed by AI Screening";
+
+  const HAZARD_BARRIER_MAP: Record<string, string[]> = {
+    "Confined Space": ["No Work Permit", "No Rescue Standby"],
+    "Working at Height": ["No Fall Protection"],
+    "Hot Work": ["No Hot Work Permit"],
+    "H₂S Exposure": ["No Atmospheric Testing"],
+    "LOTO": ["No Energy Isolation"],
+    "Crane": ["No Lifting Plan"],
+    "Forklift": ["No Traffic Management"],
+    "Suspended Load": ["No Exclusion Zone"],
+    "Pressure Release": ["No Isolation Verification"],
+    "Excavation": ["No Excavation Permit"],
+  };
+
+  const displayBarrierFailures = Array.from(
+    new Set(
+      result?.barrier_failures?.length &&
+      !result.barrier_failures.some((b) => b.toLowerCase() === "none detected")
+        ? result.barrier_failures
+        : result?.hazards?.flatMap(
+            (hazard: string) => HAZARD_BARRIER_MAP[hazard] || []
+          ) || []
+    )
+  );
+
+  return (
+    <div className="flex flex-col gap-6 p-6">
+      <div>
+        <h1 className="text-2xl font-semibold text-white" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+          Incident Submission Center
+        </h1>
+        <p className="text-sm mt-0.5" style={{ color: "#5A7A9A" }}>
+          Capture field observations, near misses, unsafe conditions, and incident narratives for SIF risk evaluation.
+        </p>
+      </div>
+
+      <div className="grid gap-4" style={{ gridTemplateColumns: analyzed ? "1fr 1fr" : "1fr" }}>
+        {/* Input Form — Always Visible */}
+        <div className="rounded-lg p-5" style={{ background: "#0A1422", border: "1px solid rgba(255,255,255,0.06)" }}>
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-sm font-semibold text-white" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+              Incident Metadata & Details
+            </div>
+            <div className="flex items-center gap-2">
+              <VoiceRecorder
+                onTranscript={(text) => {
+                  console.log("Received transcript:", text);
+                  setReport(text);
+                }}
+              />
+            </div>
+          </div>
+
+          <div
+            className="flex justify-between items-center mb-3 mt-2 text-xs"
+            style={{ color: "#5A7A9A" }}
+          >
+            <span>Report ID</span>
+            <span className="font-mono" style={{ color: "#E8531D" }}>
+              {reportId}
+            </span>
+          </div>
+
+          {/* Metadata Grid */}
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <select
+              value={incidentType}
+              onChange={(e) => setIncidentType(e.target.value)}
+              className="w-full rounded p-3 text-xs outline-none"
+              style={{
+                background: "#070F1A",
+                border: "1px solid rgba(255,255,255,0.07)",
+                color: "#9BB5CC",
+              }}
+            >
+              <option value="">Incident Type</option>
+              <option value="Unsafe Act">Unsafe Act</option>
+              <option value="Unsafe Condition">Unsafe Condition</option>
+              <option value="Near Miss">Near Miss</option>
+              <option value="First Aid Case">First Aid Case</option>
+              <option value="Incident">Incident</option>
+            </select>
+
+            <select
+              value={selectedSite}
+              onChange={(e) => setSelectedSite(e.target.value)}
+              className="w-full rounded p-3 text-xs outline-none"
+              style={{
+                background: "#070F1A",
+                border: "1px solid rgba(255,255,255,0.07)",
+                color: "#9BB5CC",
+              }}
+            >
+              <option value="">Select Site</option>
+              <option value="Duliajan">Duliajan</option>
+              <option value="Moran">Moran</option>
+              <option value="Digboi">Digboi</option>
+              <option value="Naharkatiya">Naharkatiya</option>
+            </select>
+
+            <select
+              value={severity}
+              onChange={(e) => setSeverity(e.target.value)}
+              className="w-full rounded p-3 text-xs outline-none"
+              style={{
+                background: "#070F1A",
+                border: "1px solid rgba(255,255,255,0.07)",
+                color: "#9BB5CC",
+              }}
+            >
+              <option value="">Potential Severity</option>
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+            </select>
+
+            <select
+              value={department}
+              onChange={(e) => setDepartment(e.target.value)}
+              className="w-full rounded p-3 text-xs outline-none"
+              style={{
+                background: "#070F1A",
+                border: "1px solid rgba(255,255,255,0.07)",
+                color: "#9BB5CC",
+              }}
+            >
+              <option value="">Department</option>
+              <option value="Drilling">Drilling</option>
+              <option value="Production">Production</option>
+              <option value="Maintenance">Maintenance</option>
+              <option value="Pipeline">Pipeline</option>
+              <option value="Logistics">Logistics</option>
+            </select>
+          </div>
+
+          <textarea
+            value={report}
+            onChange={(e) => setReport(e.target.value)}
+            className="w-full rounded text-xs leading-relaxed resize-none outline-none p-3"
+            rows={analyzed ? 14 : 10}
+            placeholder="Enter detailed incident narrative, work activity, hazards observed, controls missing, personnel involved, and immediate actions taken..."
+            style={{
+              background: "#070F1A",
+              border: "1px solid rgba(255,255,255,0.07)",
+              color: "#9BB5CC",
+              fontFamily: "'JetBrains Mono', monospace",
+              lineHeight: "1.7",
+            }}
+          />
+
+          <div className="flex items-center justify-between mt-3">
+            <span className="text-[11px]" style={{ color: "#3A5570" }}>
+              OIL HSSE Reporting Workflow
+            </span>
+            <button
+              onClick={analyze}
+              disabled={isFormInvalid}
+              className="px-5 py-2 rounded text-sm font-semibold text-white transition-all"
+              style={{
+                background: isFormInvalid ? "#1E2F47" : "#E8531D",
+                cursor: isFormInvalid ? "not-allowed" : "pointer",
+              }}
+            >
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />
+                  Analyzing...
+                </span>
+              ) : (
+                "Submit Incident"
+              )}
+            </button>
+          </div>
+
+          {error && (
+            <div
+              className="mt-3 text-xs rounded p-3"
+              style={{
+                background: "rgba(220,38,38,0.08)",
+                color: "#DC2626",
+                border: "1px solid rgba(220,38,38,0.25)",
+              }}
+            >
+              {error}
+            </div>
+          )}
+        </div>
+
+        {/* Results Panel */}
+        {result && (
+          <div className="flex flex-col gap-3 overflow-y-auto" style={{ maxHeight: "calc(100vh - 180px)" }}>
+            {/* Workflow Status */}
+            <div
+              className="rounded-lg p-4"
+              style={{
+                background: "#0A1422",
+                border: "1px solid rgba(255,255,255,0.06)",
+              }}
+            >
+              <div
+                className="text-[10px] uppercase tracking-widest mb-2"
+                style={{ color: "#16A34A" }}
+              >
+                Workflow Status
+              </div>
+              <div className="text-sm text-white font-semibold">
+                Incident Successfully Logged
+              </div>
+              <div
+                className="text-xs mt-1"
+                style={{ color: "#7A9AB5" }}
+              >
+                Status: {workflowStatus}
+              </div>
+            </div>
+
+            {/* Incident Metadata (Shown only when valid metadata exists) */}
+            {hasMetadata && (
+              <div
+                className="rounded-lg p-4"
+                style={{
+                  background: "#0A1422",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                }}
+              >
+                <div className="text-xs font-semibold text-white mb-3">
+                  Incident Metadata
+                </div>
+
+                <div className="grid grid-cols-2 gap-y-2 text-xs">
+                  {result.site &&
+                    result.site !== "Not specified" &&
+                    result.site !== "Unknown" &&
+                    result.site !== "N/A" && (
+                      <div>
+                        <span style={{ color: "#5A7A9A" }}>Site:</span>
+                        <div className="text-white">{result.site}</div>
+                      </div>
+                    )}
+
+                  {result.incident_type &&
+                    result.incident_type !== "Not specified" &&
+                    result.incident_type !== "Unknown" &&
+                    result.incident_type !== "N/A" && (
+                      <div>
+                        <span style={{ color: "#5A7A9A" }}>Type:</span>
+                        <div className="text-white">{result.incident_type}</div>
+                      </div>
+                    )}
+
+                  {result.severity &&
+                    result.severity !== "Not specified" &&
+                    result.severity !== "Unknown" &&
+                    result.severity !== "N/A" && (
+                      <div>
+                        <span style={{ color: "#5A7A9A" }}>Severity:</span>
+                        <div className="text-white">{result.severity}</div>
+                      </div>
+                    )}
+
+                  {result.department &&
+                    result.department !== "Not specified" &&
+                    result.department !== "Unknown" &&
+                    result.department !== "N/A" && (
+                      <div>
+                        <span style={{ color: "#5A7A9A" }}>Department:</span>
+                        <div className="text-white">{result.department}</div>
+                      </div>
+                    )}
+                </div>
+              </div>
+            )}
+
+            {/* Verdict */}
+            <div
+              className="rounded-lg p-4"
+              style={{
+                background: `${verdictColor(result.sif_verdict)}14`,
+                border: `1px solid ${verdictColor(result.sif_verdict)}40`,
+              }}
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <div
+                    className="text-[10px] uppercase tracking-widest font-semibold mb-1"
+                    style={{ color: verdictColor(result.sif_verdict) }}
+                  >
+                    SIF Verdict
+                  </div>
+                  <div className="text-xl font-bold text-white" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+                    {verdictLabel(result.sif_verdict)}
+                  </div>
+                  <p className="text-xs mt-2 leading-relaxed" style={{ color: "#8BA3C0" }}>
+                    {buildSummary(result, displayBarrierFailures)}
+                  </p>
+                </div>
+                <div className="text-right shrink-0 ml-4">
+                  <div
+                    className="text-3xl font-bold"
+                    style={{
+                      color: verdictColor(result.sif_verdict),
+                      fontFamily: "'JetBrains Mono', monospace",
+                    }}
+                  >
+                    {Math.round(result.sif_probability * 100)}%
+                  </div>
+                  <div className="text-[10px] uppercase tracking-wide mt-0.5" style={{ color: "#5A7A9A" }}>
+                    AI Confidence
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Chips */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-lg p-4" style={{ background: "#0A1422", border: "1px solid rgba(255,255,255,0.06)" }}>
+                <div className="text-xs font-semibold text-white mb-2" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+                  Detected Hazards
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {result.hazards.length ? (
+                    result.hazards.map((h: string) => (
+                      <span
+                        key={h}
+                        className="text-[11px] px-2 py-1 rounded"
+                        style={{
+                          background: "rgba(220,38,38,0.1)",
+                          color: "#DC2626",
+                          border: "1px solid rgba(220,38,38,0.2)",
+                        }}
+                      >
+                        {h}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-[11px]" style={{ color: "#3A5570" }}>
+                      None detected
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="rounded-lg p-4" style={{ background: "#0A1422", border: "1px solid rgba(255,255,255,0.06)" }}>
+                <div className="text-xs font-semibold text-white mb-2" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+                  Barrier Failures
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {displayBarrierFailures.length ? (
+                    displayBarrierFailures.map((b: string) => (
+                      <span
+                        key={b}
+                        className="text-[11px] px-2 py-1 rounded"
+                        style={{
+                          background: "rgba(217,119,6,0.1)",
+                          color: "#D97706",
+                          border: "1px solid rgba(217,119,6,0.2)",
+                        }}
+                      >
+                        {b}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-[11px]" style={{ color: "#3A5570" }}>
+                      None detected
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Life Saving Rules */}
+            <div className="rounded-lg p-4" style={{ background: "#0A1422", border: "1px solid rgba(255,255,255,0.06)" }}>
+              <div className="text-xs font-semibold text-white mb-2" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+                Life Saving Rules Matched
+              </div>
+              <div className="space-y-1.5">
+                {result.life_saving_rules.length ? (
+                  result.life_saving_rules.map((r: string, i: number) => (
+                    <div key={i} className="flex items-start gap-2 text-[11px]" style={{ color: "#7A9AB5" }}>
+                      <span style={{ color: "#E8531D" }}>→</span>
+                      <span>{r}</span>
+                    </div>
+                  ))
+                ) : (
+                  <span className="text-[11px]" style={{ color: "#3A5570" }}>
+                    No specific rule matched
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Extracted Entities */}
+            <div className="rounded-lg p-4" style={{ background: "#0A1422", border: "1px solid rgba(255,255,255,0.06)" }}>
+              <div className="text-xs font-semibold text-white mb-3" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+                Extracted Entities
+              </div>
+              <div className="grid grid-cols-2 gap-y-2">
+                <div>
+                  <div className="text-[10px] uppercase tracking-wide" style={{ color: "#3A5570" }}>
+                    Activities
+                  </div>
+                  <div className="text-xs mt-0.5 text-white">{result.activities.join(", ") || "Not specified"}</div>
+                </div>
+                <div>
+                  <div className="text-[10px] uppercase tracking-wide" style={{ color: "#3A5570" }}>
+                    Locations
+                  </div>
+                  <div className="text-xs mt-0.5 text-white">{result.locations.join(", ") || "Not specified"}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,37 @@
+# Dependencies & Node
+node_modules/
+.pnpm-store/
+
+# Build & Cache Directories
+dist/
+build/
+.cache/
+.vite/
+vite.config.*.timestamp-*
+*.tsbuildinfo
+*.log
+logs/
+
+# Environment Variables & Secrets
+.env
+.env.local
+.env.*.local
+
+# Databases & Local State
+*.db
+*.sqlite
+*.sqlite3
+
+# Python Cache & Virtual Environments
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# IDE & Tool State
+.vscode/
+.idea/
+.tmp-*
+/.figma/design-context/
+/.plugins/
+/.opencode-skills/

@@ -1,0 +1,11 @@
+{
+  "title": "SIFORA",
+  "description": "This AI-powered platform enhances industrial safety by identifying and analyzing risks, incidents, and precursors, enabling proactive fatality prevention for OIL India.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

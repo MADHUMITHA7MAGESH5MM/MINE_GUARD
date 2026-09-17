@@ -1,0 +1,151 @@
+report,sif,rules,reason
+Tape used to temporarily hold down a non-critical limit switch on scaffold structure.,LOW,Bypassing Safety Controls,Bypassed control was not critical for life safety.
+Crane lifting heavy overhead crane during high winds.,HIGH,Safe Mechanical Lifting,Risk of load drop or crane collapse.
+Harness not attached while working on heavy forklift.,HIGH,Working at Height,Potential fall from height.
+Worker entered the offshore platform excavation without permit.,HIGH,Confined Space;Work Authorization,Trench collapse or asphyxiation risk.
+Maintenance on heavy forklift performed without LOTO.,HIGH,Energy Isolation,Risk of unexpected energization and electrocution.
+Started routine non-hazardous cleaning of the offshore platform 5 minutes before permit was officially signed.,LOW,Work Authorization,Administrative lapse with no hazardous conditions present.
+Harness not attached while working on high-voltage panel.,HIGH,Working at Height,Potential fall from height.
+Tape used to temporarily hold down a non-critical limit switch on overhead crane.,LOW,Bypassing Safety Controls,Bypassed control was not critical for life safety.
+Welding performed near the offshore platform without fire watch.,HIGH,Hot Work;Work Authorization,High risk of explosion or fire.
+Harness not attached while working on pressurized pipeline.,HIGH,Working at Height,Potential fall from height.
+Mechanic disabled safety interlock on overhead crane.,HIGH,Bypassing Safety Controls,Removed critical machine guard.
+Forklift reversing alarm not functioning at the offshore platform.,HIGH,Driving,Loss of critical safety barrier.
+Worker entered the offshore platform excavation without permit.,HIGH,Confined Space;Work Authorization,Trench collapse or asphyxiation risk.
+Driver scraped a traffic cone while parking at the compressor house at very low speed.,LOW,Driving,Low speed maneuver resulting in no property damage or severe injury.
+Tape used to temporarily hold down a non-critical limit switch on high-voltage panel.,LOW,Bypassing Safety Controls,Bypassed control was not critical for life safety.
+Worker observed standing below suspended load near the chemical storage area.,HIGH,Safe Mechanical Lifting;Line of Fire,Potential fatal struck-by incident.
+Crane lifting heavy overhead crane during high winds.,HIGH,Safe Mechanical Lifting,Risk of load drop or crane collapse.
+Driver scraped a traffic cone while parking at the chemical storage area at very low speed.,LOW,Driving,Low speed maneuver resulting in no property damage or severe injury.
+Tape used to temporarily hold down a non-critical limit switch on high-voltage panel.,LOW,Bypassing Safety Controls,Bypassed control was not critical for life safety.
+Forklift reversing alarm not functioning at the flare knockout drum.,HIGH,Driving,Loss of critical safety barrier.
+Driver scraped a traffic cone while parking at the chemical storage area at very low speed.,LOW,Driving,Low speed maneuver resulting in no property damage or severe injury.
+Worker leaned head into the chemical storage area doorway to retrieve a tool without an entry permit.,LOW,Confined Space;Work Authorization,"No full bodily entry, low risk of atmospheric exposure."
+Crane lifting heavy high-voltage panel during high winds.,HIGH,Safe Mechanical Lifting,Risk of load drop or crane collapse.
+Welding performed near the chemical storage area without fire watch.,HIGH,Hot Work;Work Authorization,High risk of explosion or fire.
+"Worker dropped a small wrench from waist height near pressurized pipeline, narrowly missing foot.",LOW,Line of Fire,Small dropped object from low height carries low fatality risk.
+Driver scraped a traffic cone while parking at the offshore platform at very low speed.,LOW,Driving,Low speed maneuver resulting in no property damage or severe injury.
+Harness not attached while working on high-voltage panel.,HIGH,Working at Height,Potential fall from height.
+Tape used to temporarily hold down a non-critical limit switch on high-voltage panel.,LOW,Bypassing Safety Controls,Bypassed control was not critical for life safety.
+Worker leaned head into the main warehouse doorway to retrieve a tool without an entry permit.,LOW,Confined Space;Work Authorization,"No full bodily entry, low risk of atmospheric exposure."
+Maintenance on scaffold structure performed without LOTO.,HIGH,Energy Isolation,Risk of unexpected energization and electrocution.
+Worker entered the main warehouse without gas testing.,HIGH,Confined Space;Work Authorization,Entered confined space without safety controls.
+Worker received minor static shock while inspecting overhead crane after lockout.,LOW,Energy Isolation,"Energy was mostly isolated, resulting in only minor shock."
+Tape used to temporarily hold down a non-critical limit switch on overhead crane.,LOW,Bypassing Safety Controls,Bypassed control was not critical for life safety.
+Worker received minor static shock while inspecting high-voltage panel after lockout.,LOW,Energy Isolation,"Energy was mostly isolated, resulting in only minor shock."
+Maintenance on overhead crane performed without LOTO.,HIGH,Energy Isolation,Risk of unexpected energization and electrocution.
+Crane lifting heavy scaffold structure during high winds.,HIGH,Safe Mechanical Lifting,Risk of load drop or crane collapse.
+Driver scraped a traffic cone while parking at the main warehouse at very low speed.,LOW,Driving,Low speed maneuver resulting in no property damage or severe injury.
+Worker received minor static shock while inspecting heavy forklift after lockout.,LOW,Energy Isolation,"Energy was mostly isolated, resulting in only minor shock."
+Worker observed standing below suspended load near the compressor house.,HIGH,Safe Mechanical Lifting;Line of Fire,Potential fatal struck-by incident.
+Worker observed standing below suspended load near the compressor house.,HIGH,Safe Mechanical Lifting;Line of Fire,Potential fatal struck-by incident.
+Forklift reversing alarm not functioning at the compressor house.,HIGH,Driving,Loss of critical safety barrier.
+Minor spark from handheld grinder burned a small hole in glove at the compressor house.,LOW,Hot Work,Hot work resulted in minor equipment damage but no severe injury.
+Welding performed near the flare knockout drum without fire watch.,HIGH,Hot Work;Work Authorization,High risk of explosion or fire.
+Forklift reversing alarm not functioning at the compressor house.,HIGH,Driving,Loss of critical safety barrier.
+Maintenance on pressurized pipeline performed without LOTO.,HIGH,Energy Isolation,Risk of unexpected energization and electrocution.
+"Employee stepped on the first rung of a ladder at the offshore platform without tying off, but stepped down immediately.",LOW,Working at Height,"Very low height, minimal fall risk."
+Manually lifting a small 10kg heavy forklift caused minor back strain.,LOW,Safe Mechanical Lifting,"Manual lifting issue, not life threatening."
+Worker received minor static shock while inspecting pressurized pipeline after lockout.,LOW,Energy Isolation,"Energy was mostly isolated, resulting in only minor shock."
+Tape used to temporarily hold down a non-critical limit switch on heavy forklift.,LOW,Bypassing Safety Controls,Bypassed control was not critical for life safety.
+Manually lifting a small 10kg pressurized pipeline caused minor back strain.,LOW,Safe Mechanical Lifting,"Manual lifting issue, not life threatening."
+Harness not attached while working on heavy forklift.,HIGH,Working at Height,Potential fall from height.
+Worker received minor static shock while inspecting high-voltage panel after lockout.,LOW,Energy Isolation,"Energy was mostly isolated, resulting in only minor shock."
+Forklift reversing alarm not functioning at the offshore platform.,HIGH,Driving,Loss of critical safety barrier.
+Forklift reversing alarm not functioning at the main warehouse.,HIGH,Driving,Loss of critical safety barrier.
+Welding performed near the flare knockout drum without fire watch.,HIGH,Hot Work;Work Authorization,High risk of explosion or fire.
+Minor spark from handheld grinder burned a small hole in glove at the compressor house.,LOW,Hot Work,Hot work resulted in minor equipment damage but no severe injury.
+Maintenance on high-voltage panel performed without LOTO.,HIGH,Energy Isolation,Risk of unexpected energization and electrocution.
+Maintenance on overhead crane performed without LOTO.,HIGH,Energy Isolation,Risk of unexpected energization and electrocution.
+Mechanic disabled safety interlock on high-voltage panel.,HIGH,Bypassing Safety Controls,Removed critical machine guard.
+Harness not attached while working on pressurized pipeline.,HIGH,Working at Height,Potential fall from height.
+Worker received minor static shock while inspecting heavy forklift after lockout.,LOW,Energy Isolation,"Energy was mostly isolated, resulting in only minor shock."
+Worker observed standing below suspended load near the compressor house.,HIGH,Safe Mechanical Lifting;Line of Fire,Potential fatal struck-by incident.
+"Worker dropped a small wrench from waist height near scaffold structure, narrowly missing foot.",LOW,Line of Fire,Small dropped object from low height carries low fatality risk.
+Worker leaned head into the chemical storage area doorway to retrieve a tool without an entry permit.,LOW,Confined Space;Work Authorization,"No full bodily entry, low risk of atmospheric exposure."
+Worker entered the compressor house without gas testing.,HIGH,Confined Space;Work Authorization,Entered confined space without safety controls.
+Worker leaned head into the offshore platform doorway to retrieve a tool without an entry permit.,LOW,Confined Space;Work Authorization,"No full bodily entry, low risk of atmospheric exposure."
+Manually lifting a small 10kg high-voltage panel caused minor back strain.,LOW,Safe Mechanical Lifting,"Manual lifting issue, not life threatening."
+"Worker dropped a small wrench from waist height near overhead crane, narrowly missing foot.",LOW,Line of Fire,Small dropped object from low height carries low fatality risk.
+Minor spark from handheld grinder burned a small hole in glove at the offshore platform.,LOW,Hot Work,Hot work resulted in minor equipment damage but no severe injury.
+Tape used to temporarily hold down a non-critical limit switch on high-voltage panel.,LOW,Bypassing Safety Controls,Bypassed control was not critical for life safety.
+Driver scraped a traffic cone while parking at the compressor house at very low speed.,LOW,Driving,Low speed maneuver resulting in no property damage or severe injury.
+"Worker dropped a small wrench from waist height near scaffold structure, narrowly missing foot.",LOW,Line of Fire,Small dropped object from low height carries low fatality risk.
+Crane lifting heavy heavy forklift during high winds.,HIGH,Safe Mechanical Lifting,Risk of load drop or crane collapse.
+Driver scraped a traffic cone while parking at the flare knockout drum at very low speed.,LOW,Driving,Low speed maneuver resulting in no property damage or severe injury.
+Welding performed near the main warehouse without fire watch.,HIGH,Hot Work;Work Authorization,High risk of explosion or fire.
+Maintenance on high-voltage panel performed without LOTO.,HIGH,Energy Isolation,Risk of unexpected energization and electrocution.
+Worker entered the offshore platform without gas testing.,HIGH,Confined Space;Work Authorization,Entered confined space without safety controls.
+Minor spark from handheld grinder burned a small hole in glove at the chemical storage area.,LOW,Hot Work,Hot work resulted in minor equipment damage but no severe injury.
+"Employee stepped on the first rung of a ladder at the main warehouse without tying off, but stepped down immediately.",LOW,Working at Height,"Very low height, minimal fall risk."
+Manually lifting a small 10kg overhead crane caused minor back strain.,LOW,Safe Mechanical Lifting,"Manual lifting issue, not life threatening."
+Worker received minor static shock while inspecting overhead crane after lockout.,LOW,Energy Isolation,"Energy was mostly isolated, resulting in only minor shock."
+Worker received minor static shock while inspecting pressurized pipeline after lockout.,LOW,Energy Isolation,"Energy was mostly isolated, resulting in only minor shock."
+Started routine non-hazardous cleaning of the compressor house 5 minutes before permit was officially signed.,LOW,Work Authorization,Administrative lapse with no hazardous conditions present.
+Worker entered the compressor house excavation without permit.,HIGH,Confined Space;Work Authorization,Trench collapse or asphyxiation risk.
+Minor spark from handheld grinder burned a small hole in glove at the offshore platform.,LOW,Hot Work,Hot work resulted in minor equipment damage but no severe injury.
+Welding performed near the chemical storage area without fire watch.,HIGH,Hot Work;Work Authorization,High risk of explosion or fire.
+Harness not attached while working on heavy forklift.,HIGH,Working at Height,Potential fall from height.
+Worker leaned head into the compressor house doorway to retrieve a tool without an entry permit.,LOW,Confined Space;Work Authorization,"No full bodily entry, low risk of atmospheric exposure."
+"Employee stepped on the first rung of a ladder at the compressor house without tying off, but stepped down immediately.",LOW,Working at Height,"Very low height, minimal fall risk."
+Forklift reversing alarm not functioning at the flare knockout drum.,HIGH,Driving,Loss of critical safety barrier.
+Mechanic disabled safety interlock on scaffold structure.,HIGH,Bypassing Safety Controls,Removed critical machine guard.
+Maintenance on pressurized pipeline performed without LOTO.,HIGH,Energy Isolation,Risk of unexpected energization and electrocution.
+Minor spark from handheld grinder burned a small hole in glove at the chemical storage area.,LOW,Hot Work,Hot work resulted in minor equipment damage but no severe injury.
+Forklift reversing alarm not functioning at the offshore platform.,HIGH,Driving,Loss of critical safety barrier.
+"Employee stepped on the first rung of a ladder at the offshore platform without tying off, but stepped down immediately.",LOW,Working at Height,"Very low height, minimal fall risk."
+Driver scraped a traffic cone while parking at the flare knockout drum at very low speed.,LOW,Driving,Low speed maneuver resulting in no property damage or severe injury.
+Harness not attached while working on pressurized pipeline.,HIGH,Working at Height,Potential fall from height.
+Worker received minor static shock while inspecting pressurized pipeline after lockout.,LOW,Energy Isolation,"Energy was mostly isolated, resulting in only minor shock."
+Started routine non-hazardous cleaning of the main warehouse 5 minutes before permit was officially signed.,LOW,Work Authorization,Administrative lapse with no hazardous conditions present.
+Worker received minor static shock while inspecting high-voltage panel after lockout.,LOW,Energy Isolation,"Energy was mostly isolated, resulting in only minor shock."
+Manually lifting a small 10kg pressurized pipeline caused minor back strain.,LOW,Safe Mechanical Lifting,"Manual lifting issue, not life threatening."
+Tape used to temporarily hold down a non-critical limit switch on pressurized pipeline.,LOW,Bypassing Safety Controls,Bypassed control was not critical for life safety.
+Crane lifting heavy high-voltage panel during high winds.,HIGH,Safe Mechanical Lifting,Risk of load drop or crane collapse.
+Forklift reversing alarm not functioning at the flare knockout drum.,HIGH,Driving,Loss of critical safety barrier.
+Harness not attached while working on scaffold structure.,HIGH,Working at Height,Potential fall from height.
+Crane lifting heavy high-voltage panel during high winds.,HIGH,Safe Mechanical Lifting,Risk of load drop or crane collapse.
+Maintenance on overhead crane performed without LOTO.,HIGH,Energy Isolation,Risk of unexpected energization and electrocution.
+Crane lifting heavy heavy forklift during high winds.,HIGH,Safe Mechanical Lifting,Risk of load drop or crane collapse.
+Worker observed standing below suspended load near the chemical storage area.,HIGH,Safe Mechanical Lifting;Line of Fire,Potential fatal struck-by incident.
+"Worker dropped a small wrench from waist height near scaffold structure, narrowly missing foot.",LOW,Line of Fire,Small dropped object from low height carries low fatality risk.
+Welding performed near the compressor house without fire watch.,HIGH,Hot Work;Work Authorization,High risk of explosion or fire.
+Forklift reversing alarm not functioning at the offshore platform.,HIGH,Driving,Loss of critical safety barrier.
+Mechanic disabled safety interlock on overhead crane.,HIGH,Bypassing Safety Controls,Removed critical machine guard.
+Tape used to temporarily hold down a non-critical limit switch on scaffold structure.,LOW,Bypassing Safety Controls,Bypassed control was not critical for life safety.
+Harness not attached while working on pressurized pipeline.,HIGH,Working at Height,Potential fall from height.
+Minor spark from handheld grinder burned a small hole in glove at the compressor house.,LOW,Hot Work,Hot work resulted in minor equipment damage but no severe injury.
+"Worker dropped a small wrench from waist height near heavy forklift, narrowly missing foot.",LOW,Line of Fire,Small dropped object from low height carries low fatality risk.
+Started routine non-hazardous cleaning of the compressor house 5 minutes before permit was officially signed.,LOW,Work Authorization,Administrative lapse with no hazardous conditions present.
+Started routine non-hazardous cleaning of the compressor house 5 minutes before permit was officially signed.,LOW,Work Authorization,Administrative lapse with no hazardous conditions present.
+"Employee stepped on the first rung of a ladder at the chemical storage area without tying off, but stepped down immediately.",LOW,Working at Height,"Very low height, minimal fall risk."
+Driver scraped a traffic cone while parking at the compressor house at very low speed.,LOW,Driving,Low speed maneuver resulting in no property damage or severe injury.
+Minor spark from handheld grinder burned a small hole in glove at the chemical storage area.,LOW,Hot Work,Hot work resulted in minor equipment damage but no severe injury.
+Forklift reversing alarm not functioning at the compressor house.,HIGH,Driving,Loss of critical safety barrier.
+Worker entered the offshore platform without gas testing.,HIGH,Confined Space;Work Authorization,Entered confined space without safety controls.
+Harness not attached while working on pressurized pipeline.,HIGH,Working at Height,Potential fall from height.
+Worker entered the flare knockout drum excavation without permit.,HIGH,Confined Space;Work Authorization,Trench collapse or asphyxiation risk.
+Minor spark from handheld grinder burned a small hole in glove at the offshore platform.,LOW,Hot Work,Hot work resulted in minor equipment damage but no severe injury.
+Harness not attached while working on pressurized pipeline.,HIGH,Working at Height,Potential fall from height.
+Started routine non-hazardous cleaning of the chemical storage area 5 minutes before permit was officially signed.,LOW,Work Authorization,Administrative lapse with no hazardous conditions present.
+"Worker dropped a small wrench from waist height near heavy forklift, narrowly missing foot.",LOW,Line of Fire,Small dropped object from low height carries low fatality risk.
+Forklift reversing alarm not functioning at the offshore platform.,HIGH,Driving,Loss of critical safety barrier.
+Worker leaned head into the compressor house doorway to retrieve a tool without an entry permit.,LOW,Confined Space;Work Authorization,"No full bodily entry, low risk of atmospheric exposure."
+"Employee stepped on the first rung of a ladder at the flare knockout drum without tying off, but stepped down immediately.",LOW,Working at Height,"Very low height, minimal fall risk."
+Worker entered the flare knockout drum excavation without permit.,HIGH,Confined Space;Work Authorization,Trench collapse or asphyxiation risk.
+Manually lifting a small 10kg high-voltage panel caused minor back strain.,LOW,Safe Mechanical Lifting,"Manual lifting issue, not life threatening."
+Worker entered the offshore platform excavation without permit.,HIGH,Confined Space;Work Authorization,Trench collapse or asphyxiation risk.
+Worker observed standing below suspended load near the compressor house.,HIGH,Safe Mechanical Lifting;Line of Fire,Potential fatal struck-by incident.
+"Worker dropped a small wrench from waist height near overhead crane, narrowly missing foot.",LOW,Line of Fire,Small dropped object from low height carries low fatality risk.
+"Employee stepped on the first rung of a ladder at the main warehouse without tying off, but stepped down immediately.",LOW,Working at Height,"Very low height, minimal fall risk."
+Worker entered the offshore platform excavation without permit.,HIGH,Confined Space;Work Authorization,Trench collapse or asphyxiation risk.
+Worker leaned head into the flare knockout drum doorway to retrieve a tool without an entry permit.,LOW,Confined Space;Work Authorization,"No full bodily entry, low risk of atmospheric exposure."
+Welding performed near the chemical storage area without fire watch.,HIGH,Hot Work;Work Authorization,High risk of explosion or fire.
+"Worker dropped a small wrench from waist height near heavy forklift, narrowly missing foot.",LOW,Line of Fire,Small dropped object from low height carries low fatality risk.
+Worker received minor static shock while inspecting overhead crane after lockout.,LOW,Energy Isolation,"Energy was mostly isolated, resulting in only minor shock."
+Welding performed near the main warehouse without fire watch.,HIGH,Hot Work;Work Authorization,High risk of explosion or fire.
+Minor spark from handheld grinder burned a small hole in glove at the chemical storage area.,LOW,Hot Work,Hot work resulted in minor equipment damage but no severe injury.
+Mechanic disabled safety interlock on heavy forklift.,HIGH,Bypassing Safety Controls,Removed critical machine guard.
+Forklift reversing alarm not functioning at the chemical storage area.,HIGH,Driving,Loss of critical safety barrier.
+Crane lifting heavy pressurized pipeline during high winds.,HIGH,Safe Mechanical Lifting,Risk of load drop or crane collapse.
+Mechanic disabled safety interlock on scaffold structure.,HIGH,Bypassing Safety Controls,Removed critical machine guard.
