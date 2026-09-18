@@ -28,7 +28,8 @@ def get_incidents(
     if reviewed_by_human is not None:
         query = query.filter(Incident.reviewed_by_human == reviewed_by_human)
 
-    return query.offset(skip).limit(limit).all()
+    # Order by newest first (descending) so recent bulk uploads show up at the top
+    return query.order_by(Incident.id.desc()).offset(skip).limit(limit).all()
 
 
 def create_incident(db: Session, incident_data: dict):
