@@ -30,31 +30,16 @@ export default function HumanReview() {
 
   const loadPending = () => {
     setLoading(true);
-
-    listIncidents({
-      reviewed_by_human: false,
-      sif_verdict: "REVIEW",
-      limit: 25,
-    })
+    listIncidents({ reviewed_by_human: false, limit: 25 })
       .then((data: IncidentResponse[]) => {
-        const reviewQueue = [...data].sort(
-          (a, b) => b.sif_probability - a.sif_probability
-        );
-
-        setPending(reviewQueue);
+        setPending(data);
         setError(null);
       })
-      .catch((e: unknown) => {
-        setError(e instanceof ApiError ? e.message : "Failed to load incidents.");
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+      .catch((e: unknown) => setError(e instanceof ApiError ? e.message : "Failed to load pending reviews."))
+      .finally(() => setLoading(false));
   };
 
-  useEffect(() => {
-    loadPending();
-  }, []);
+  useEffect(loadPending, []);
 
   const active: IncidentResponse | null = pending[index] ?? null;
 
@@ -101,7 +86,7 @@ export default function HumanReview() {
         </h1>
         <div className="rounded-lg p-8 text-center" style={{ background: "#0A1422", border: "1px solid rgba(255,255,255,0.06)" }}>
           <div className="text-sm font-medium text-white mb-1">No pending reviews 🎉</div>
-          <div className="text-xs" style={{ color: "#5A7A9A" }}>No borderline incidents currently require human review</div>
+          <div className="text-xs" style={{ color: "#5A7A9A" }}>Every incident in the database has been reviewed.</div>
           <button onClick={loadPending} className="mt-4 px-4 py-2 rounded text-xs font-medium text-white" style={{ background: "#E8531D" }}>
             Refresh
           </button>
@@ -128,7 +113,7 @@ export default function HumanReview() {
             Human Review Center
           </h1>
           <p className="text-sm mt-0.5" style={{ color: "#5A7A9A" }}>
-            Case #{active.id} · {pending.length} borderline cases awaiting review
+            Case #{active.id} · {pending.length} pending in queue
           </p>
         </div>
         <span className="text-xs px-3 py-1.5 rounded font-medium" style={{ background: "rgba(217,119,6,0.12)", color: "#D97706", border: "1px solid rgba(217,119,6,0.25)" }}>
