@@ -10,7 +10,7 @@ nlp = spacy.load("en_core_web_sm")
 ruler = nlp.add_pipe("entity_ruler", before="ner")
 
 # =============================================================================
-# Entity Patterns (Upgraded with Context & Lemmatization)
+# Entity Patterns ( Context & Lemmatization)
 # =============================================================================
 patterns = [
     # ---- EXCLUSIONS (Intercept job titles so they don't trigger HAZARDS) ----

@@ -128,7 +128,7 @@ export default function Analytics() {
         {[
           { label: "Total Incidents", value: summary?.total_incidents },
           { label: "High-SIF Count", value: summary?.high_sif_count },
-          { label: "Pending Review", value: summary?.review_pending_count },
+          
           { label: "High-SIF Ratio", value: summary ? `${summary.high_sif_ratio}%` : undefined },
         ].map((k) => (
           <div key={k.label} className="rounded-lg px-5 py-4" style={{ background: "#0A1422", border: "1px solid rgba(255,255,255,0.06)" }}>

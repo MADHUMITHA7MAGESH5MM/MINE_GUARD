@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   submitIncident,
   ApiError,
@@ -43,24 +43,30 @@ function buildSummary(r: PredictionResponse, barrierFailures: string[]) {
 }
 
 export default function AIAnalysis() {
+  const [mode, setMode] = useState<"single" | "bulk">("single");
+  const [file, setFile] = useState<File | null>(null);
+
+  // Single Report State
   const [report, setReport] = useState("");
   const [selectedSite, setSelectedSite] = useState("");
   const [incidentType, setIncidentType] = useState("");
   const [severity, setSeverity] = useState("");
   const [department, setDepartment] = useState("");
+
+  // Response State
   const [result, setResult] = useState<IncidentResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [bulkSuccess, setBulkSuccess] = useState<string | null>(null);
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [reportId] = useState(
-    `INC-${new Date().getFullYear()}-${Math.floor(
-      1000 + Math.random() * 9000
-    )}`
+    `INC-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`
   );
 
   const isFormInvalid = loading || !report.trim();
 
-  const analyze = async () => {
+  const analyzeSingle = async () => {
     setLoading(true);
     setError(null);
     try {
@@ -70,6 +76,32 @@ export default function AIAnalysis() {
     } catch (e: unknown) {
       setResult(null);
       setError(e instanceof ApiError ? e.message : "Something went wrong analyzing this report.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const uploadBulk = async () => {
+    if (!file) return;
+    setLoading(true);
+    setError(null);
+    setBulkSuccess(null);
+    
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch("http://localhost:8000/api/v1/incidents/bulk", {
+        method: "POST",
+        body: formData,
+      });
+      
+      if (!response.ok) throw new Error("Bulk upload failed. Check the backend server.");
+      const data = await response.json();
+      setBulkSuccess(data.message);
+      setFile(null);
+    } catch (e: any) {
+      setError(e.message || "Failed to process bulk upload.");
     } finally {
       setLoading(false);
     }
@@ -123,152 +155,185 @@ export default function AIAnalysis() {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-white" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-          Incident Submission Center
-        </h1>
-        <p className="text-sm mt-0.5" style={{ color: "#5A7A9A" }}>
-          Capture field observations, near misses, unsafe conditions, and incident narratives for SIF risk evaluation.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-white" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+            Incident Submission Center
+          </h1>
+          <p className="text-sm mt-0.5" style={{ color: "#5A7A9A" }}>
+            Capture field observations or upload historical datasets for SIF risk evaluation.
+          </p>
+        </div>
+        
+        {/* Mode Toggle */}
+        <div className="flex bg-[#0A1422] rounded-lg p-1 border border-white/5">
+          <button 
+            onClick={() => { setMode("single"); setResult(null); setError(null); setBulkSuccess(null); }}
+            className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all ${mode === "single" ? 'bg-[#E8531D] text-white' : 'text-[#5A7A9A] hover:text-white'}`}
+          >
+            Single Entry
+          </button>
+          <button 
+            onClick={() => { setMode("bulk"); setResult(null); setError(null); setBulkSuccess(null); }}
+            className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all ${mode === "bulk" ? 'bg-[#E8531D] text-white' : 'text-[#5A7A9A] hover:text-white'}`}
+          >
+            Bulk Upload
+          </button>
+        </div>
       </div>
 
       <div className="grid gap-4" style={{ gridTemplateColumns: analyzed ? "1fr 1fr" : "1fr" }}>
-        {/* Input Form — Always Visible */}
+        
+        {/* INPUT PANEL */}
         <div className="rounded-lg p-5" style={{ background: "#0A1422", border: "1px solid rgba(255,255,255,0.06)" }}>
-          <div className="flex items-center justify-between mb-3">
-            <div className="text-sm font-semibold text-white" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-              Incident Metadata & Details
-            </div>
-            <div className="flex items-center gap-2">
-              <VoiceRecorder
-                onTranscript={(text) => {
-                  console.log("Received transcript:", text);
-                  setReport(text);
-                }}
+          
+          {mode === "single" ? (
+             <div className="flex flex-col">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-sm font-semibold text-white" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+                    Incident Metadata & Details
+                  </div>
+                  <VoiceRecorder
+                    onTranscript={(text) => {
+                      console.log("Received transcript:", text);
+                      setReport(text);
+                    }}
+                  />
+                </div>
+
+                <div className="flex justify-between items-center mb-3 mt-2 text-xs" style={{ color: "#5A7A9A" }}>
+                  <span>Report ID</span>
+                  <span className="font-mono" style={{ color: "#E8531D" }}>{reportId}</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <select
+                    value={incidentType}
+                    onChange={(e) => setIncidentType(e.target.value)}
+                    className="w-full rounded p-3 text-xs outline-none"
+                    style={{ background: "#070F1A", border: "1px solid rgba(255,255,255,0.07)", color: "#9BB5CC" }}
+                  >
+                    <option value="">Incident Type</option>
+                    <option value="Unsafe Act">Unsafe Act</option>
+                    <option value="Unsafe Condition">Unsafe Condition</option>
+                    <option value="Near Miss">Near Miss</option>
+                    <option value="First Aid Case">First Aid Case</option>
+                    <option value="Incident">Incident</option>
+                  </select>
+
+                  <select
+                    value={selectedSite}
+                    onChange={(e) => setSelectedSite(e.target.value)}
+                    className="w-full rounded p-3 text-xs outline-none"
+                    style={{ background: "#070F1A", border: "1px solid rgba(255,255,255,0.07)", color: "#9BB5CC" }}
+                  >
+                    <option value="">Select Site</option>
+                    <option value="Duliajan">Duliajan</option>
+                    <option value="Moran">Moran</option>
+                    <option value="Digboi">Digboi</option>
+                    <option value="Naharkatiya">Naharkatiya</option>
+                  </select>
+
+                  <select
+                    value={severity}
+                    onChange={(e) => setSeverity(e.target.value)}
+                    className="w-full rounded p-3 text-xs outline-none"
+                    style={{ background: "#070F1A", border: "1px solid rgba(255,255,255,0.07)", color: "#9BB5CC" }}
+                  >
+                    <option value="">Potential Severity</option>
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                  </select>
+
+                  <select
+                    value={department}
+                    onChange={(e) => setDepartment(e.target.value)}
+                    className="w-full rounded p-3 text-xs outline-none"
+                    style={{ background: "#070F1A", border: "1px solid rgba(255,255,255,0.07)", color: "#9BB5CC" }}
+                  >
+                    <option value="">Department</option>
+                    <option value="Drilling">Drilling</option>
+                    <option value="Production">Production</option>
+                    <option value="Maintenance">Maintenance</option>
+                    <option value="Pipeline">Pipeline</option>
+                    <option value="Logistics">Logistics</option>
+                  </select>
+                </div>
+
+                <textarea
+                  value={report}
+                  onChange={(e) => setReport(e.target.value)}
+                  className="w-full rounded text-xs leading-relaxed resize-none outline-none p-3"
+                  rows={analyzed ? 14 : 10}
+                  placeholder="Enter detailed incident narrative, work activity, hazards observed, controls missing, personnel involved, and immediate actions taken..."
+                  style={{
+                    background: "#070F1A",
+                    border: "1px solid rgba(255,255,255,0.07)",
+                    color: "#9BB5CC",
+                    fontFamily: "'JetBrains Mono', monospace",
+                    lineHeight: "1.7",
+                  }}
+                />
+
+                <div className="flex items-center justify-between mt-3">
+                  <span className="text-[11px]" style={{ color: "#3A5570" }}>
+                    OIL HSSE Reporting Workflow
+                  </span>
+                  <button
+                    onClick={analyzeSingle}
+                    disabled={isFormInvalid}
+                    className="px-5 py-2 rounded text-sm font-semibold text-white transition-all"
+                    style={{
+                      background: isFormInvalid ? "#1E2F47" : "#E8531D",
+                      cursor: isFormInvalid ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    {loading ? (
+                      <span className="flex items-center gap-2">
+                        <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />
+                        Analyzing...
+                      </span>
+                    ) : (
+                      "Submit Incident"
+                    )}
+                  </button>
+                </div>
+             </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-16 border-2 border-dashed border-white/10 rounded-lg bg-[#070F1A]">
+              <div className="text-4xl mb-4">📂</div>
+              <h3 className="text-white font-medium mb-1">Upload Historical Incidents</h3>
+              <p className="text-xs text-[#5A7A9A] mb-6">Supports .CSV containing a 'report' column</p>
+              
+              <input 
+                type="file" 
+                accept=".csv" 
+                className="hidden" 
+                ref={fileInputRef}
+                onChange={(e) => setFile(e.target.files?.[0] || null)}
               />
-            </div>
-          </div>
+              
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                className="px-4 py-2 rounded text-xs font-medium text-white border border-white/10 hover:bg-white/5 transition-colors"
+              >
+                {file ? file.name : "Select File"}
+              </button>
 
-          <div
-            className="flex justify-between items-center mb-3 mt-2 text-xs"
-            style={{ color: "#5A7A9A" }}
-          >
-            <span>Report ID</span>
-            <span className="font-mono" style={{ color: "#E8531D" }}>
-              {reportId}
-            </span>
-          </div>
-
-          {/* Metadata Grid */}
-          <div className="grid grid-cols-2 gap-3 mb-3">
-            <select
-              value={incidentType}
-              onChange={(e) => setIncidentType(e.target.value)}
-              className="w-full rounded p-3 text-xs outline-none"
-              style={{
-                background: "#070F1A",
-                border: "1px solid rgba(255,255,255,0.07)",
-                color: "#9BB5CC",
-              }}
-            >
-              <option value="">Incident Type</option>
-              <option value="Unsafe Act">Unsafe Act</option>
-              <option value="Unsafe Condition">Unsafe Condition</option>
-              <option value="Near Miss">Near Miss</option>
-              <option value="First Aid Case">First Aid Case</option>
-              <option value="Incident">Incident</option>
-            </select>
-
-            <select
-              value={selectedSite}
-              onChange={(e) => setSelectedSite(e.target.value)}
-              className="w-full rounded p-3 text-xs outline-none"
-              style={{
-                background: "#070F1A",
-                border: "1px solid rgba(255,255,255,0.07)",
-                color: "#9BB5CC",
-              }}
-            >
-              <option value="">Select Site</option>
-              <option value="Duliajan">Duliajan</option>
-              <option value="Moran">Moran</option>
-              <option value="Digboi">Digboi</option>
-              <option value="Naharkatiya">Naharkatiya</option>
-            </select>
-
-            <select
-              value={severity}
-              onChange={(e) => setSeverity(e.target.value)}
-              className="w-full rounded p-3 text-xs outline-none"
-              style={{
-                background: "#070F1A",
-                border: "1px solid rgba(255,255,255,0.07)",
-                color: "#9BB5CC",
-              }}
-            >
-              <option value="">Potential Severity</option>
-              <option value="Low">Low</option>
-              <option value="Medium">Medium</option>
-              <option value="High">High</option>
-            </select>
-
-            <select
-              value={department}
-              onChange={(e) => setDepartment(e.target.value)}
-              className="w-full rounded p-3 text-xs outline-none"
-              style={{
-                background: "#070F1A",
-                border: "1px solid rgba(255,255,255,0.07)",
-                color: "#9BB5CC",
-              }}
-            >
-              <option value="">Department</option>
-              <option value="Drilling">Drilling</option>
-              <option value="Production">Production</option>
-              <option value="Maintenance">Maintenance</option>
-              <option value="Pipeline">Pipeline</option>
-              <option value="Logistics">Logistics</option>
-            </select>
-          </div>
-
-          <textarea
-            value={report}
-            onChange={(e) => setReport(e.target.value)}
-            className="w-full rounded text-xs leading-relaxed resize-none outline-none p-3"
-            rows={analyzed ? 14 : 10}
-            placeholder="Enter detailed incident narrative, work activity, hazards observed, controls missing, personnel involved, and immediate actions taken..."
-            style={{
-              background: "#070F1A",
-              border: "1px solid rgba(255,255,255,0.07)",
-              color: "#9BB5CC",
-              fontFamily: "'JetBrains Mono', monospace",
-              lineHeight: "1.7",
-            }}
-          />
-
-          <div className="flex items-center justify-between mt-3">
-            <span className="text-[11px]" style={{ color: "#3A5570" }}>
-              OIL HSSE Reporting Workflow
-            </span>
-            <button
-              onClick={analyze}
-              disabled={isFormInvalid}
-              className="px-5 py-2 rounded text-sm font-semibold text-white transition-all"
-              style={{
-                background: isFormInvalid ? "#1E2F47" : "#E8531D",
-                cursor: isFormInvalid ? "not-allowed" : "pointer",
-              }}
-            >
-              {loading ? (
-                <span className="flex items-center gap-2">
-                  <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />
-                  Analyzing...
-                </span>
-              ) : (
-                "Submit Incident"
+              {file && (
+                <button
+                  onClick={uploadBulk}
+                  disabled={loading}
+                  className="mt-6 px-8 py-2.5 rounded text-sm font-semibold text-white transition-all bg-[#16A34A] hover:bg-[#15803d]"
+                >
+                  {loading ? "Processing Dataset..." : "Run ML Inference Pipeline"}
+                </button>
               )}
-            </button>
-          </div>
+
+              {bulkSuccess && <div className="mt-4 text-xs text-[#16A34A] font-medium px-4 py-2 bg-green-500/10 border border-green-500/20 rounded">{bulkSuccess}</div>}
+            </div>
+          )}
 
           {error && (
             <div
@@ -312,7 +377,7 @@ export default function AIAnalysis() {
               </div>
             </div>
 
-            {/* Incident Metadata (Shown only when valid metadata exists) */}
+            {/* Incident Metadata */}
             {hasMetadata && (
               <div
                 className="rounded-lg p-4"
@@ -403,7 +468,7 @@ export default function AIAnalysis() {
                     {Math.round(result.sif_probability * 100)}%
                   </div>
                   <div className="text-[10px] uppercase tracking-wide mt-0.5" style={{ color: "#5A7A9A" }}>
-                    AI Confidence
+                    SIF
                   </div>
                 </div>
               </div>
