@@ -34,7 +34,6 @@ class IncidentCreateRequest(BaseModel):
     raw_text: str
 
     site: Optional[str] = None
-
     incident_type: Optional[str] = None
     severity: Optional[str] = None
     department: Optional[str] = None
@@ -88,7 +87,7 @@ class IncidentReviewUpdate(BaseModel):
 
 
 # ==========================================================
-# ANALYTICS SUMMARY
+# ANALYTICS SUMMARY & LEGACY SCHEMAS
 # ==========================================================
 
 class AnalyticsSummary(BaseModel):
@@ -100,10 +99,6 @@ class AnalyticsSummary(BaseModel):
     avg_confidence: float
 
 
-# ==========================================================
-# SITE ANALYTICS
-# ==========================================================
-
 class SiteAnalyticsItem(BaseModel):
     site: str
     total_reports: int
@@ -111,11 +106,40 @@ class SiteAnalyticsItem(BaseModel):
     high_sif_density: float
 
 
-# ==========================================================
-# PATTERN ANALYTICS
-# ==========================================================
-
 class PatternAnalyticsItem(BaseModel):
     activity: str
+    barrier_failure: str
+    count: int
+
+
+# ==========================================================
+# MINEGUARD PHASE 3 ANALYTICS SCHEMAS
+# ==========================================================
+
+class TrendPoint(BaseModel):
+    date: str
+    high_sif: int
+    low_risk: int
+
+
+class CauseDistributionItem(BaseModel):
+    cause: str
+    count: int
+
+
+class PlaceDistributionItem(BaseModel):
+    place: str
+    count: int
+
+
+class SubsidiaryRankItem(BaseModel):
+    subsidiary: str
+    risk_index: float
+    total_incidents: int
+    high_sif_count: int
+
+
+class HazardBarrierMatrixItem(BaseModel):
+    hazard: str
     barrier_failure: str
     count: int

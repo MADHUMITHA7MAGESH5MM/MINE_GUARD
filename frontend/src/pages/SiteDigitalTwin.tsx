@@ -1,20 +1,21 @@
 import { useEffect, useState } from "react";
 import { getSiteAnalytics } from "@/lib/api";
 
+// Fallback coordinate mappings for known sites
 const SITE_COORDS: Record<string, { x: number; y: number }> = {
-  "Duliajan": { x: 200, y: 130 },
-  "Moran": { x: 280, y: 190 },
-  "Digboi": { x: 380, y: 150 },
-  "Naharkatiya": { x: 460, y: 240 },
-  "Rajasthan Block": { x: 550, y: 100 },
-  "Offshore Platform A": { x: 340, y: 280 },
-  "Pipeline Section 12": { x: 180, y: 260 }
+  "SECL - Churcha Colliery": { x: 200, y: 130 },
+  "BCCL - Jharia Division": { x: 280, y: 190 },
+  "ECL - Raniganj Area": { x: 380, y: 150 },
+  "SCCL - Singareni Deep Seam": { x: 460, y: 240 },
+  "NCL - Singrauli Opencast": { x: 550, y: 100 },
+  "WCL - Nagpur Wardha Valley": { x: 340, y: 280 },
+  "MCL - Talcher Concession": { x: 180, y: 260 }
 };
 
 const INCIDENTS = [
-  { x: 265, y: 205, type: "critical", label: "OIL-0847: Confined Space Entry" },
-  { x: 195, y: 145, type: "high", label: "OIL-0840: No PTW at wellhead" },
-  { x: 385, y: 162, type: "medium", label: "OIL-0834: LOTO deviation" },
+  { x: 265, y: 205, type: "critical", label: "INC-0847: Methane accumulation detected" },
+  { x: 195, y: 145, type: "high", label: "INC-0840: No PTW at underground panel" },
+  { x: 385, y: 162, type: "medium", label: "INC-0834: LOTO deviation on vent fan" },
 ];
 
 const riskColor = (r: string) => ({
@@ -33,35 +34,31 @@ export default function SiteDigitalTwin() {
   useEffect(() => {
     getSiteAnalytics()
       .then(data => {
-        const mapped = data.map((site, index) => ({
-          // 4. Safe Unique Zone ID Generation
-          id: `${site.site.split(" ").map(w => w[0]).join("").toUpperCase()}-${index + 1}`,
-          siteName: site.site,
-          label: site.site,
-          x: SITE_COORDS[site.site]?.x || 100,
-          y: SITE_COORDS[site.site]?.y || 100,
-          alerts:
-            site.high_sif_density > 75
-              ? 3
-              : site.high_sif_density > 65
-              ? 2
-              : site.high_sif_density > 50
-              ? 1
-              : 0,
-          risk:
-            site.high_sif_density > 75
-              ? "critical"
-              : site.high_sif_density > 65
-              ? "high"
-              : site.high_sif_density > 50
-              ? "medium"
-              : "low",
-          score: Math.round(site.high_sif_density),
-          safetyScore: 100 - Math.round(site.high_sif_density)
-        }));
+        const mapped = data.map((site, index) => {
+          // If the site name isn't in SITE_COORDS, dynamically assign coordinates on a grid so it never breaks
+          const fallbackCoords = {
+            x: 120 + (index % 4) * 140,
+            y: 120 + Math.floor(index / 4) * 100
+          };
+          const coords = SITE_COORDS[site.site] || fallbackCoords;
+
+          const siteNameClean = site.site && site.site.trim() !== "" ? site.site : "Unknown Mining Site";
+          const id = siteNameClean === "Unknown Mining Site" ? `SITE-${index + 1}` : `${siteNameClean.split(" ").map(w => w[0]).join("").toUpperCase()}-${index + 1}`;
+
+          return {
+            id,
+            siteName: siteNameClean,
+            label: siteNameClean,
+            x: coords.x,
+            y: coords.y,
+            alerts: site.high_sif_density > 75 ? 3 : site.high_sif_density > 65 ? 2 : site.high_sif_density > 50 ? 1 : 0,
+            risk: site.high_sif_density > 75 ? "critical" : site.high_sif_density > 65 ? "high" : site.high_sif_density > 50 ? "medium" : "low",
+            score: Math.round(site.high_sif_density),
+            safetyScore: 100 - Math.round(site.high_sif_density)
+          };
+        });
 
         setZones(mapped);
-
         if (mapped.length > 0) {
           setSelected(mapped[0].id);
         }
@@ -79,7 +76,7 @@ export default function SiteDigitalTwin() {
             Site Digital Twin
           </h1>
           <p className="text-sm mt-0.5" style={{ color: "#5A7A9A" }}>
-            OIL India Operational Sites · AI-Powered SIF Risk Monitoring · Live Safety Intelligence
+            DGMS Operational Sites · AI-Powered SIF Risk Monitoring · Live Safety Intelligence
           </p>
         </div>
         <div className="flex gap-2 text-xs">
@@ -97,18 +94,16 @@ export default function SiteDigitalTwin() {
         {/* Map */}
         <div className="rounded-lg overflow-hidden" style={{ background: "#050D18", border: "1px solid rgba(255,255,255,0.06)" }}>
           <div className="px-4 py-3 flex items-center gap-3 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
-            <span className="text-xs font-semibold text-white">OIL India Operational Sites — Digital Twin Overview</span>
+            <span className="text-xs font-semibold text-white">DGMS Operational Sites — Digital Twin Overview</span>
             <span className="ml-auto text-[10px] px-2 py-0.5 rounded" style={{ background: "rgba(220,38,38,0.12)", color: "#DC2626" }}>
               {zones.reduce((sum, z) => sum + z.alerts, 0)} Active Alerts
             </span>
           </div>
           <div className="relative" style={{ minHeight: 400 }}>
             <svg viewBox="0 0 700 400" className="w-full" style={{ minHeight: 400 }}>
-              {/* Site boundary */}
               <rect x={60} y={40} width={580} height={330} rx={8}
                 fill="rgba(10,20,40,0.6)" stroke="rgba(255,255,255,0.08)" strokeWidth={1.5} />
 
-              {/* Grid */}
               {[80, 140, 200, 260, 320, 380].map(y => (
                 <line key={y} x1={60} y1={y} x2={640} y2={y} stroke="rgba(255,255,255,0.03)" strokeWidth={0.5} />
               ))}
@@ -116,16 +111,13 @@ export default function SiteDigitalTwin() {
                 <line key={x} x1={x} y1={40} x2={x} y2={370} stroke="rgba(255,255,255,0.03)" strokeWidth={0.5} />
               ))}
 
-              {/* Site label */}
               <text x={80} y={62} fill="rgba(255,255,255,0.15)" fontSize={9} fontFamily="'JetBrains Mono', monospace" letterSpacing={1}>
-                OIL INDIA — SITE RISK MAP
+                DGMS — SITE RISK MAP
               </text>
 
-              {/* Roads/paths */}
               <path d="M 120 200 L 580 200" stroke="rgba(255,255,255,0.06)" strokeWidth={6} strokeLinecap="round" />
               <path d="M 340 80 L 340 360" stroke="rgba(255,255,255,0.06)" strokeWidth={6} strokeLinecap="round" />
 
-              {/* Zone areas */}
               {zones.map(zone => (
                 <g key={zone.id}>
                   <rect
@@ -149,16 +141,9 @@ export default function SiteDigitalTwin() {
                   </text>
                   {zone.alerts > 0 && (
                     <g>
-                      {/* 3. Context-Aware Alert Badge Color */}
                       <circle cx={zone.x + 38} cy={zone.y - 16} r={7} 
                         fill={
-                          zone.risk === "critical"
-                            ? "#DC2626"
-                            : zone.risk === "high"
-                            ? "#D97706"
-                            : zone.risk === "medium"
-                            ? "#3B82F6"
-                            : "#16A34A"
+                          zone.risk === "critical" ? "#DC2626" : zone.risk === "high" ? "#D97706" : zone.risk === "medium" ? "#3B82F6" : "#16A34A"
                         } 
                       />
                       <text x={zone.x + 38} y={zone.y - 13} textAnchor="middle" fill="white" fontSize={8} fontWeight="bold" fontFamily="'JetBrains Mono', monospace">
@@ -169,7 +154,6 @@ export default function SiteDigitalTwin() {
                 </g>
               ))}
 
-              {/* Incident markers */}
               {INCIDENTS.map((inc, i) => (
                 <g key={i}>
                   <circle cx={inc.x} cy={inc.y} r={8} fill={`${riskColor(inc.type)}30`} stroke={riskColor(inc.type)} strokeWidth={1.5}>
@@ -180,7 +164,6 @@ export default function SiteDigitalTwin() {
                 </g>
               ))}
 
-              {/* North indicator */}
               <g transform="translate(616, 60)">
                 <circle r={14} fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.08)" strokeWidth={0.5} />
                 <text y={4} textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize={10} fontFamily="'Inter', sans-serif" fontWeight="600">N</text>
@@ -191,7 +174,6 @@ export default function SiteDigitalTwin() {
 
         {/* Right panel */}
         <div className="flex flex-col gap-3">
-          {/* Selected zone detail */}
           {selectedZone && (
             <div className="rounded-lg p-4" style={{ background: "#0A1422", border: `1px solid ${riskColor(selectedZone.risk)}40` }}>
               <div className="flex items-center gap-2 mb-3">
@@ -204,7 +186,6 @@ export default function SiteDigitalTwin() {
               </div>
               <div className="text-sm font-semibold text-white mb-1">{selectedZone.label}</div>
               <div className="text-xs mb-1" style={{ color: "#5A7A9A" }}>Site: {selectedZone.siteName}</div>
-              {/* 2. Added Risk Level Display */}
               <div className="text-xs mb-1" style={{ color: "#5A7A9A" }}>Risk Level: {selectedZone.risk.toUpperCase()}</div>
               <div className="text-xs mb-3" style={{ color: "#5A7A9A" }}>High SIF Density: {selectedZone.score}%</div>
               
@@ -217,14 +198,8 @@ export default function SiteDigitalTwin() {
                 </div>
                 <div>
                   <div className="text-[10px] uppercase tracking-wide" style={{ color: "#3A5570" }}>Safety Score</div>
-                  {/* 1. Intuitive Safety Score Color Coding */}
                   <div className="font-bold mt-0.5" style={{
-                    color:
-                      selectedZone.safetyScore >= 80
-                        ? "#16A34A"
-                        : selectedZone.safetyScore >= 60
-                        ? "#D97706"
-                        : "#DC2626",
+                    color: selectedZone.safetyScore >= 80 ? "#16A34A" : selectedZone.safetyScore >= 60 ? "#D97706" : "#DC2626",
                     fontFamily: "'JetBrains Mono', monospace"
                   }}>
                     {selectedZone.safetyScore}%
@@ -252,7 +227,6 @@ export default function SiteDigitalTwin() {
                   <div className="w-1 h-8 rounded-full" style={{ background: riskColor(zone.risk) }} />
                   <div className="flex-1 min-w-0">
                     <div className="text-xs font-medium text-white">{zone.label}</div>
-                    {/* 5. Improved Wording for Enterprise Clarity */}
                     <div className="text-[10px]" style={{ color: "#3A5570" }}>{zone.id} · SIF Density {zone.score}%</div>
                   </div>
                   {zone.alerts > 0 && (

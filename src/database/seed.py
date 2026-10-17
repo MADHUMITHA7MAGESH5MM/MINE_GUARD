@@ -4,6 +4,9 @@ from datetime import datetime, timezone
 import pandas as pd
 from sqlalchemy.orm import Session
 import random
+from src.database.database import SessionLocal
+from src.database.models import Incident
+# If there are any other local imports (like crud or schemas), add 'src.' to them as well!
 
 # Resolve project paths to ensure modules import cleanly regardless of execution context
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -63,14 +66,14 @@ def seed_database(csv_path: str = "../../data/final_sif_1000.csv") -> None:
     db: Session = SessionLocal()
 
     sites = [
-        "Duliajan",
-        "Moran",
-        "Digboi",
-        "Naharkatiya",
-        "Rajasthan Block",
-        "Offshore Platform A",
-        "Pipeline Section 12"
-    ]
+    "SECL - Churcha Colliery",
+    "BCCL - Jharia Division",
+    "ECL - Raniganj Area",
+    "SCCL - Singareni Deep Seam",
+    "NCL - Singrauli Opencast",
+    "WCL - Nagpur Wardha Valley",
+    "MCL - Talcher Concession"
+]
     try:
         print(f"Reading dataset from {resolved_csv}...")
         df = pd.read_csv(resolved_csv)

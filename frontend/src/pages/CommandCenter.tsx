@@ -1,7 +1,9 @@
+import { useState, useEffect } from "react";
 import {
   LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, ReferenceLine
 } from "recharts";
+import { getAnalyticsSummary, type AnalyticsSummary } from "@/lib/api";
 
 const riskTrend = [
   { month: "Mar", sif: 12, near: 34, unsafe: 67 },
@@ -14,28 +16,22 @@ const riskTrend = [
 ];
 
 const sites = [
-  { id: "DIG-01", name: "Duliajan Drilling Complex", risk: "critical", score: 87, incidents: 12, lat: 65, lng: 72 },
-  { id: "REF-02", name: "Numaligarh Refinery", risk: "high", score: 64, incidents: 7, lat: 35, lng: 58 },
-  { id: "PPL-03", name: "Jorhat Pipeline Station", risk: "high", score: 61, incidents: 5, lat: 48, lng: 78 },
-  { id: "TKF-04", name: "Digboi Tank Farm", risk: "medium", score: 42, incidents: 3, lat: 22, lng: 45 },
-  { id: "NHK-05", name: "Naharkatiya Production Facility", risk: "critical", score: 91, incidents: 15, lat: 75, lng: 32 },
-  { id: "PRO-06", name: "Moran Processing Unit", risk: "medium", score: 38, incidents: 2, lat: 55, lng: 62 },
+  { id: "SECL-01", name: "SECL - Churcha Colliery", risk: "critical", score: 87, incidents: 12, lat: 65, lng: 72 },
+  { id: "BCCL-02", name: "BCCL - Jharia Division", risk: "high", score: 64, incidents: 7, lat: 35, lng: 58 },
+  { id: "ECL-03", name: "ECL - Raniganj Area", risk: "high", score: 61, incidents: 5, lat: 48, lng: 78 },
+  { id: "SCCL-04", name: "SCCL - Singareni Deep", risk: "medium", score: 42, incidents: 3, lat: 22, lng: 45 },
+  { id: "NCL-05", name: "NCL - Singrauli Opencast", risk: "critical", score: 91, incidents: 15, lat: 75, lng: 32 },
+  { id: "WCL-06", name: "WCL - Nagpur Wardha", risk: "medium", score: 38, incidents: 2, lat: 55, lng: 62 },
 ];
 
+// UPDATED: Fully migrated to Mining Domain Alerts
 const alerts = [
-  { time: "09:14", site: "Naharkatiya Production Facility", type: "CRITICAL", msg: "Confined space entry without PTW detected — Gas Compression Unit-2", color: "#DC2626" },
-  { time: "09:02", site: "Duliajan Drilling", type: "HIGH", msg: "High H₂S concentration reported near wellhead DU-12", color: "#D97706" },
-  { time: "08:51", site: "Numaligarh Refinery", type: "HIGH", msg: "Working at height without fall arrest — Tank T-07 maintenance", color: "#D97706" },
-  { time: "08:33", site: "Jorhat Pipeline", type: "MEDIUM", msg: "Hot work permit expired — Section KM 142.3", color: "#E8531D" },
-  { time: "08:19", site: "Digboi Tank Farm", type: "LOW", msg: "Housekeeping deficiency observed at pumping station", color: "#4A6080" },
-  { time: "07:58", site: "Moran Processing Unit", type: "MEDIUM", msg: "LOTO procedure deviation reported by shift supervisor", color: "#E8531D" },
-];
-
-const kpis = [
-  { label: "Total Incidents YTD", value: "1001", delta: "+12%", up: true },
-  { label: "High-SIF Cases", value: "248", delta: "+3 this week", up: true },
-  { label: "Pending Reviews", value: "17", delta: "6 overdue", up: true },
-  { label: "Fatality Prevention Score", value: "55.8", delta: "+2.1 pts", up: false, unit: "/100" },
+  { time: "09:14", site: "SECL - Churcha Colliery", type: "CRITICAL", msg: "Methane accumulation detected in blind heading — Ventilation Unit-2", color: "#DC2626" },
+  { time: "09:02", site: "BCCL - Jharia Division", type: "HIGH", msg: "Severe strata spalling reported — Depillaring Panel A", color: "#D97706" },
+  { time: "08:51", site: "ECL - Raniganj Area", type: "HIGH", msg: "Working near highwall without safety berm — Opencast Sector 4", color: "#D97706" },
+  { time: "08:33", site: "SCCL - Singareni Deep", type: "MEDIUM", msg: "Hot work permit expired — Underground Conveyor Belt", color: "#E8531D" },
+  { time: "08:19", site: "NCL - Singrauli Opencast", type: "LOW", msg: "Housekeeping deficiency near heavy machinery parking", color: "#4A6080" },
+  { time: "07:58", site: "WCL - Nagpur Wardha", type: "MEDIUM", msg: "LOTO procedure deviation on main ventilation fan", color: "#E8531D" },
 ];
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -51,8 +47,25 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export default function CommandCenter() {
+  const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
+
+  // Fetch live stats from the database on page load
+  useEffect(() => {
+    getAnalyticsSummary()
+      .then((data) => setSummary(data))
+      .catch((err) => console.error("Failed to load KPI summary:", err));
+  }, []);
+
   const riskColor = (r: string) =>
     r === "critical" ? "#DC2626" : r === "high" ? "#D97706" : "#3B82F6";
+
+  // DYNAMIC KPIs using the fetched summary
+  const kpis = [
+    { label: "Total Incidents YTD", value: summary?.total_incidents.toString() || "...", delta: "Live Database", up: true },
+    { label: "High-SIF Cases", value: summary?.high_sif_count.toString() || "...", delta: "Live Database", up: true },
+    { label: "Pending Reviews", value: summary?.review_pending_count.toString() || "...", delta: "Requires attention", up: true },
+    { label: "Fatality Prevention Score", value: "55.8", delta: "+2.1 pts", up: false, unit: "/100" },
+  ];
 
   return (
     <div className="flex flex-col gap-6 p-6 min-h-full">
@@ -63,7 +76,7 @@ export default function CommandCenter() {
             Safety Command Center
           </h1>
           <p className="text-sm mt-0.5" style={{ color: "#5A7A9A" }}>
-            Real-time operational overview · OIL India field network · {new Date().toLocaleDateString("en-IN", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+            Real-time operational overview · India Coal & Metal Mines · {new Date().toLocaleDateString("en-IN", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
           </p>
         </div>
         <div className="flex items-center gap-2 text-xs px-3 py-1.5 rounded"

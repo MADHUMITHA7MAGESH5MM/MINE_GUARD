@@ -1,5 +1,5 @@
-from database import engine
-from models import Base
+from src.database.database import engine
+from src.database.models import Base
 
 def init_database():
     print("Connecting to SQLite engine...")

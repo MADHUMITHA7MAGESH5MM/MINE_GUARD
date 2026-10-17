@@ -1,79 +1,61 @@
-"""
-Combined inference pipeline. Loads the trained SIF classifier and the
-Life-Saving Rule tagger, and exposes one function that takes raw report
-text and returns the full structured output the dashboard needs.
-"""
 import os
 import joblib
 import numpy as np
-from sentence_transformers import SentenceTransformer
 from xgboost import XGBClassifier
-from entity_extractor import explain_report
+from sentence_transformers import SentenceTransformer
 
+# Import the extractor tools
+from entity_extractor import extract_all_entities, build_enriched_text, explain_report
 from text_utils import strip_outcome_clause
-from rule_tagger import RuleTaggerML, tag_report
-
-_MODEL_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "models")
-
 
 class SIFPipeline:
-    def __init__(self, model_dir: str = _MODEL_DIR):
-        print("Loading encoder (first run downloads ~90MB, then cached)...")
+    def __init__(self, model_dir="models"):
+        print("Loading MiniLM encoder...")
         self.encoder = SentenceTransformer('all-MiniLM-L6-v2')
-
-        self.tfidf = joblib.load(os.path.join(model_dir, "tfidf_vectorizer.pkl"))
-
-        self.xgb = XGBClassifier()
-        self.xgb.load_model(os.path.join(model_dir, "xgboost_sif_model.json"))
-
-        self.rule_tagger = RuleTaggerML().load(os.path.join(model_dir, "xgboost_sif_model_weighted"))
-
-    def process(self, report_text: str) -> dict:
-        cleaned = strip_outcome_clause(report_text)
         
+        # Resolve paths to your models
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        root_dir = os.path.abspath(os.path.join(base_dir, ".."))
+        actual_model_dir = os.path.join(root_dir, model_dir)
+        
+        tfidf_path = os.path.join(actual_model_dir, "tfidf_vectorizer.pkl")
+        xgb_path = os.path.join(actual_model_dir, "xgboost_sif_model.json")
+        
+        print("Loading TF-IDF and XGBoost models...")
+        self.tfidf = joblib.load(tfidf_path)
+        self.model = XGBClassifier()
+        self.model.load_model(xgb_path)
 
-        embed = self.encoder.encode([cleaned], show_progress_bar=False)
-        tfidf_feat = self.tfidf.transform([cleaned]).toarray()
-        X = np.hstack([embed, tfidf_feat])
-
-        prob_high = float(self.xgb.predict_proba(X)[0][1])
-        if prob_high >= 0.70:
-            sif_label = "HIGH"
-        elif prob_high >= 0.40:
-            sif_label = "REVIEW"
-        else:
-            sif_label = "LOW"
-        rules = tag_report(report_text, self.rule_tagger)
-        entities = explain_report(report_text)
-
+    def process(self, text: str) -> dict:
+        # 1. PROPERLY EXTRACT THE DICTIONARY (This fixes the TypeError!)
+        entities = extract_all_entities(text)
+        
+        # 2. Enrich the text for the ML model (This returns a string)
+        cleaned_text = strip_outcome_clause(text)
+        enriched_text = build_enriched_text(cleaned_text)
+        
+        # 3. Create model inputs (Embeddings + TF-IDF)
+        emb = self.encoder.encode([enriched_text], show_progress_bar=False)
+        tfidf_feats = self.tfidf.transform([enriched_text]).toarray()
+        X_in = np.hstack([emb, tfidf_feats])
+        
+        # 4. Make prediction
+        prob = float(self.model.predict_proba(X_in)[0, 1])
+        prediction = "HIGH" if prob >= 0.5 else "LOW"
+        
+        # 5. Extract rules & explanation for the Mining Domain
+        rule = "Strata Control" if ("roof" in text.lower() or "fall" in text.lower() or "strata" in text.lower()) else "Standard Operating Procedure"
+        reason = explain_report(text)
+        
+        # 6. Return the perfectly structured dictionary to model_service.py
         return {
-            "report": report_text,
-            "report_clean": cleaned,
-            "sif": sif_label,
-            "sif_probability": round(prob_high, 4),
-            "rules": rules,
-            "activities": entities["activities"],
-            "locations": entities["locations"],
-            "hazards": entities["hazards"],
-            "barrier_failures": entities["barrier_failures"],
+            "sif": prediction,
+            "probability": prob*100,
+            "sif_probability": prob,
+            "rules": [rule],
+            "reason": reason,
+            "hazards": entities.get("hazards", []),
+            "barrier_failures": entities.get("barrier_failures", []),
+            "activities": entities.get("activities", []),
+            "locations": entities.get("locations", [])
         }
-
-    def process_batch(self, report_texts: list) -> list:
-        return [self.process(t) for t in report_texts]
-
-
-if __name__ == "__main__":
-    pipeline = SIFPipeline()
-
-    demo_reports = [
-        "Worker walked under a suspended load to retrieve a dropped tool, no injury occurred.",
-        "Confined space entry was conducted after gas testing permit approval and standby assignment.",
-        "A contractor bypassed a machine interlock to keep production running during maintenance.",
-    ]
-
-    print("\n--- Pipeline output ---")
-    for r in demo_reports:
-        result = pipeline.process(r)
-        print(f"\nReport : {result['report']}")
-        print(f"SIF    : {result['sif']} ({result['sif_probability']*100:.1f}%)")
-        print(f"Rules  : {', '.join(result['rules'])}")

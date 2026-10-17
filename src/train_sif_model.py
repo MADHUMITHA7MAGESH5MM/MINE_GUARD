@@ -26,7 +26,7 @@ from text_utils import strip_outcome_clause
 
 if __name__ == "__main__":
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    csv_path = os.path.join(script_dir, "..", "data", "final_sif_1000.csv")
+    csv_path = os.path.join(script_dir, "..", "data", "mining_incidents.csv")
     model_dir = os.path.join(script_dir, "..", "models")
     os.makedirs(model_dir, exist_ok=True)
 

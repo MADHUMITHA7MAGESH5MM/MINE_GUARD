@@ -59,7 +59,7 @@ export default function FatalitySimulator() {
           Fatality Prevention Simulator
         </h1>
         <p className="text-sm mt-0.5" style={{ color: "#5A7A9A" }}>
-          Toggle safety controls to see how predicted fatality risk changes — Scenario: Confined Space Entry, Mud Pit Tank, Duliajan
+          Toggle safety controls to see how predicted fatality risk changes — Scenario: Underground Depillaring Panel, Roof Bolting
         </p>
       </div>
 
@@ -201,8 +201,7 @@ export default function FatalitySimulator() {
               Scenario Context
             </div>
             <p className="text-[11px] leading-relaxed" style={{ color: "#7A9AB5" }}>
-              Confined space entry into a mud pit tank with H₂S present at 22 ppm. Two contractor workers.
-              Based on 47 similar incidents in OIL India SIF database and IOGP global statistics.
+              Underground depillaring panel entry with Methane (CH₄) present and active strata spalling. Two contractor workers. Based on DGMS SANKET historical mining statistics.
             </p>
           </div>
         </div>

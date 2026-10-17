@@ -18,6 +18,9 @@ export interface IncidentResponse {
   raw_text: string;
   cleaned_text?: string;
   site?: string;
+  incident_type?: string;
+  severity?: string;
+  department?: string;
   submitted_via: string;
   submitted_at: string;
   sif_verdict: "HIGH" | "REVIEW" | "LOW";
@@ -91,11 +94,24 @@ export async function predict(reportText: string): Promise<PredictionResponse> {
   return handleResponse<PredictionResponse>(response, "Prediction failed");
 }
 
-export async function submitIncident(reportText: string, site: string): Promise<IncidentResponse> {
+export async function submitIncident(
+  reportText: string, 
+  site: string,
+  incidentType?: string,
+  severity?: string,
+  department?: string
+): Promise<IncidentResponse> {
   const response = await fetch(`${API_BASE_URL}/api/v1/incidents`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ raw_text: reportText, site }),
+    body: JSON.stringify({ 
+      raw_text: reportText, 
+      site: site,
+      incident_type: incidentType || "Incident",
+      severity: severity || "Medium",
+      department: department || "Operations",
+      submitted_via: "web"
+    }),
   });
   return handleResponse<IncidentResponse>(response, "Failed to save incident");
 }
@@ -109,7 +125,7 @@ export async function listIncidents(params: ListIncidentsParams = {}): Promise<I
   if (params.offset !== undefined) query.append("offset", String(params.offset));
   if (params.site) query.append("site", params.site);
 
-  const url = `${API_BASE_URL}/api/v1/incidents${query.toString() ? `?${query.toString()}` : ""}`;
+  const url = `${API_BASE_URL}/api/v1/incidents${query.toString() ? `?\${query.toString()}` : ""}`;
   const response = await fetch(url);
   return handleResponse<IncidentResponse[]>(response, "Failed to list incidents");
 }
@@ -126,22 +142,18 @@ export async function reviewIncident(
   return handleResponse<IncidentResponse>(response, "Failed to review incident");
 }
 
-export async function getAnalytics(): Promise<Record<string, unknown>> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/analytics`);
-  return handleResponse<Record<string, unknown>>(response, "Failed to fetch analytics");
-}
-
+// Changed to match the incidents router paths
 export async function getAnalyticsSummary(): Promise<AnalyticsSummary> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/analytics/summary`);
+  const response = await fetch(`${API_BASE_URL}/api/v1/incidents/summary`);
   return handleResponse<AnalyticsSummary>(response, "Failed to fetch analytics summary");
 }
 
 export async function getSiteAnalytics(): Promise<SiteAnalyticsItem[]> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/analytics/sites`);
+  const response = await fetch(`${API_BASE_URL}/api/v1/incidents/sites`);
   return handleResponse<SiteAnalyticsItem[]>(response, "Failed to fetch site analytics");
 }
 
 export async function getPatternAnalytics(): Promise<PatternAnalyticsItem[]> {
-  const response = await fetch(`${API_BASE_URL}/api/v1/analytics/patterns`);
+  const response = await fetch(`${API_BASE_URL}/api/v1/incidents/patterns`);
   return handleResponse<PatternAnalyticsItem[]>(response, "Failed to fetch pattern analytics");
 }

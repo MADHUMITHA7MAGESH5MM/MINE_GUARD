@@ -23,14 +23,14 @@ export default function Sidebar({ page, setPage }: { page: Page; setPage: (p: Pa
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded flex items-center justify-center text-white text-xs font-bold"
             style={{ background: "#E8531D" }}>
-            SI
+            MG
           </div>
           <div>
             <div className="text-white font-semibold text-sm tracking-wide" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-              SIFORA
+              MINEGUARD
             </div>
             <div className="text-[10px] tracking-widest uppercase" style={{ color: "#4A6080" }}>
-              OIL India
+              DGMS · Mining
             </div>
           </div>
         </div>

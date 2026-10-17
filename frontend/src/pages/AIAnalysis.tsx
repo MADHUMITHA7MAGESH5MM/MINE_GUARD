@@ -28,8 +28,9 @@ function buildSummary(r: PredictionResponse, barrierFailures: string[]) {
   } else {
     parts.push("The model did not find strong SIF-precursor signal in this report.");
   }
-  if (r.life_saving_rules.length) {
-    parts.push(`Matched to ${r.life_saving_rules.length} IOGP Life-Saving Rule${r.life_saving_rules.length > 1 ? "s" : ""}: ${r.life_saving_rules.join(", ")}.`);
+  
+  if (r.life_saving_rules && r.life_saving_rules.length) {
+    parts.push(`Matched to ${r.life_saving_rules.length} DGMS Safety Guideline${r.life_saving_rules.length > 1 ? "s" : ""}: ${r.life_saving_rules.join(", ")}.`);
   }
 
   if (barrierFailures.length) {
@@ -129,17 +130,18 @@ export default function AIAnalysis() {
       ? "Pending Human Review"
       : "Closed by AI Screening";
 
+  // UPDATED FOR MINING DOMAIN
   const HAZARD_BARRIER_MAP: Record<string, string[]> = {
-    "Confined Space": ["No Work Permit", "No Rescue Standby"],
-    "Working at Height": ["No Fall Protection"],
-    "Hot Work": ["No Hot Work Permit"],
-    "H₂S Exposure": ["No Atmospheric Testing"],
-    "LOTO": ["No Energy Isolation"],
-    "Crane": ["No Lifting Plan"],
-    "Forklift": ["No Traffic Management"],
-    "Suspended Load": ["No Exclusion Zone"],
-    "Pressure Release": ["No Isolation Verification"],
-    "Excavation": ["No Excavation Permit"],
+    "roof fall": ["inadequate roof support", "no roof bolting"],
+    "strata spalling": ["pre-shift inspection", "no roof bolting"],
+    "methane accumulation": ["poor ventilation", "defunct audio-visual alarm"],
+    "coal dust explosion": ["poor ventilation", "gas testing"],
+    "inundation": ["permit to work"],
+    "dumper rollover": ["substandard berm"],
+    "dump slide": ["substandard berm"],
+    "heavy machinery run-over": ["defunct audio-visual alarm", "safety belt"],
+    "confined space": ["permit to work", "gas testing"],
+    "misfire": ["permit to work"]
   };
 
   const displayBarrierFailures = Array.from(
@@ -148,7 +150,7 @@ export default function AIAnalysis() {
       !result.barrier_failures.some((b) => b.toLowerCase() === "none detected")
         ? result.barrier_failures
         : result?.hazards?.flatMap(
-            (hazard: string) => HAZARD_BARRIER_MAP[hazard] || []
+            (hazard: string) => HAZARD_BARRIER_MAP[hazard.toLowerCase()] || []
           ) || []
     )
   );
@@ -221,6 +223,7 @@ export default function AIAnalysis() {
                     <option value="Incident">Incident</option>
                   </select>
 
+                  {/* UPDATED MINING SITES */}
                   <select
                     value={selectedSite}
                     onChange={(e) => setSelectedSite(e.target.value)}
@@ -228,10 +231,13 @@ export default function AIAnalysis() {
                     style={{ background: "#070F1A", border: "1px solid rgba(255,255,255,0.07)", color: "#9BB5CC" }}
                   >
                     <option value="">Select Site</option>
-                    <option value="Duliajan">Duliajan</option>
-                    <option value="Moran">Moran</option>
-                    <option value="Digboi">Digboi</option>
-                    <option value="Naharkatiya">Naharkatiya</option>
+                    <option value="SECL - Churcha Colliery">SECL - Churcha</option>
+                    <option value="BCCL - Jharia Division">BCCL - Jharia</option>
+                    <option value="ECL - Raniganj Area">ECL - Raniganj</option>
+                    <option value="SCCL - Singareni Deep Seam">SCCL - Singareni</option>
+                    <option value="NCL - Singrauli Opencast">NCL - Singrauli</option>
+                    <option value="WCL - Nagpur Wardha Valley">WCL - Nagpur</option>
+                    <option value="MCL - Talcher Concession">MCL - Talcher</option>
                   </select>
 
                   <select
@@ -246,6 +252,7 @@ export default function AIAnalysis() {
                     <option value="High">High</option>
                   </select>
 
+                  {/* UPDATED MINING DEPARTMENTS */}
                   <select
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
@@ -253,11 +260,11 @@ export default function AIAnalysis() {
                     style={{ background: "#070F1A", border: "1px solid rgba(255,255,255,0.07)", color: "#9BB5CC" }}
                   >
                     <option value="">Department</option>
-                    <option value="Drilling">Drilling</option>
-                    <option value="Production">Production</option>
+                    <option value="Underground Operations">Underground Operations</option>
+                    <option value="Surface Mining">Surface Mining</option>
+                    <option value="Ventilation & Safety">Ventilation & Safety</option>
                     <option value="Maintenance">Maintenance</option>
-                    <option value="Pipeline">Pipeline</option>
-                    <option value="Logistics">Logistics</option>
+                    <option value="Logistics & Transport">Logistics & Transport</option>
                   </select>
                 </div>
 
@@ -278,7 +285,7 @@ export default function AIAnalysis() {
 
                 <div className="flex items-center justify-between mt-3">
                   <span className="text-[11px]" style={{ color: "#3A5570" }}>
-                    OIL HSSE Reporting Workflow
+                    DGMS Mining Safety Workflow
                   </span>
                   <button
                     onClick={analyzeSingle}
@@ -443,7 +450,8 @@ export default function AIAnalysis() {
               }}
             >
               <div className="flex items-start justify-between">
-                <div>
+                {/* ADDED flex-1 pr-4 RIGHT HERE TO FIX THE LAYOUT BUG */}
+                <div className="flex-1 pr-4">
                   <div
                     className="text-[10px] uppercase tracking-widest font-semibold mb-1"
                     style={{ color: verdictColor(result.sif_verdict) }}
@@ -465,7 +473,11 @@ export default function AIAnalysis() {
                       fontFamily: "'JetBrains Mono', monospace",
                     }}
                   >
-                    {Math.round(result.sif_probability * 100)}%
+                    {/* BULLETPROOF MATH TO HANDLE BOTH DECIMALS AND WHOLE NUMBERS */}
+                    {(() => {
+                      const rawProb = result.sif_probability || (result as any).probability || 0;
+                      return Math.round(rawProb <= 1 ? rawProb * 100 : rawProb);
+                    })()}%
                   </div>
                   <div className="text-[10px] uppercase tracking-wide mt-0.5" style={{ color: "#5A7A9A" }}>
                     SIF
@@ -473,7 +485,6 @@ export default function AIAnalysis() {
                 </div>
               </div>
             </div>
-
             {/* Chips */}
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-lg p-4" style={{ background: "#0A1422", border: "1px solid rgba(255,255,255,0.06)" }}>
@@ -533,10 +544,10 @@ export default function AIAnalysis() {
             {/* Life Saving Rules */}
             <div className="rounded-lg p-4" style={{ background: "#0A1422", border: "1px solid rgba(255,255,255,0.06)" }}>
               <div className="text-xs font-semibold text-white mb-2" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-                Life Saving Rules Matched
+                DGMS Safety Guidelines Matched
               </div>
               <div className="space-y-1.5">
-                {result.life_saving_rules.length ? (
+                {result.life_saving_rules && result.life_saving_rules.length ? (
                   result.life_saving_rules.map((r: string, i: number) => (
                     <div key={i} className="flex items-start gap-2 text-[11px]" style={{ color: "#7A9AB5" }}>
                       <span style={{ color: "#E8531D" }}>→</span>
@@ -561,13 +572,13 @@ export default function AIAnalysis() {
                   <div className="text-[10px] uppercase tracking-wide" style={{ color: "#3A5570" }}>
                     Activities
                   </div>
-                  <div className="text-xs mt-0.5 text-white">{result.activities.join(", ") || "Not specified"}</div>
+                  <div className="text-xs mt-0.5 text-white">{result.activities?.join(", ") || "Not specified"}</div>
                 </div>
                 <div>
                   <div className="text-[10px] uppercase tracking-wide" style={{ color: "#3A5570" }}>
                     Locations
                   </div>
-                  <div className="text-xs mt-0.5 text-white">{result.locations.join(", ") || "Not specified"}</div>
+                  <div className="text-xs mt-0.5 text-white">{result.locations?.join(", ") || "Not specified"}</div>
                 </div>
               </div>
             </div>
